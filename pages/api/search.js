@@ -1,7 +1,3 @@
-import fetch from 'node-fetch';
-
-const TOKEN_URL = 'https://accounts.spotify.com/api/token';
-
 function basicAuth() {
   const id = process.env.SPOTIFY_CLIENT_ID;
   const secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -9,7 +5,7 @@ function basicAuth() {
 }
 
 async function getToken() {
-  const res = await fetch(TOKEN_URL, {
+  const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
       Authorization: `Basic ${basicAuth()}`,
