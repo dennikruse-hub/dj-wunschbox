@@ -15,23 +15,33 @@ export default function Home() {
 
   async function submit(e) {
     e.preventDefault();
-    setStatus({ type: 'loading', text: 'Suche Song bei Spotify ...' });
+    setStatus({ type: 'loading', text: 'Suche deinen Song bei Spotify ...' });
+
     const currentCount = Number(localStorage.getItem('djwunschbox_count') || '0');
     if (currentCount >= 3) {
       setStatus({ type: 'error', text: 'Du hast bereits 3 Wünsche gesendet. Danke!' });
       return;
     }
+
     try {
       const res = await fetch('/api/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Fehler beim Senden.');
+
       localStorage.setItem('djwunschbox_count', String(currentCount + 1));
       setCount(currentCount + 1);
-      setStatus({ type: 'success', text: data.duplicate ? 'Der Song ist schon in der Wunschliste.' : 'Wunsch wurde zur Spotify-Playlist hinzugefügt!', track: data.track });
+
+      setStatus({
+        type: 'success',
+        text: data.duplicate ? 'Der Song ist schon in der Wunschliste.' : 'Wunsch erfolgreich!',
+        track: data.track
+      });
+
       setForm({ artist: '', title: '', guest: '', message: '' });
     } catch (err) {
       setStatus({ type: 'error', text: err.message });
@@ -39,24 +49,243 @@ export default function Home() {
   }
 
   return (
-    <main className="page">
-      <section className="card">
-        <div className="badge">🎧 DJ Dennis</div>
-        <h1>Wunschbox</h1>
-        <p className="muted">Scanne den QR-Code, sende deinen Musikwunsch und ich packe ihn in meine Spotify-Wunschliste.</p>
-        <form onSubmit={submit} className="form">
-          <label>Interpret<input name="artist" value={form.artist} onChange={update} placeholder="z. B. Roland Kaiser" /></label>
-          <label>Songtitel<input name="title" value={form.title} onChange={update} placeholder="z. B. Warum hast du nicht nein gesagt" /></label>
-          <label>Dein Name optional<input name="guest" value={form.guest} onChange={update} placeholder="z. B. Dennis" /></label>
-          <label>Gruß optional<textarea name="message" value={form.message} onChange={update} placeholder="Gruß an das Brautpaar oder Geburtstagskind" /></label>
-          <button disabled={status?.type === 'loading'}>{status?.type === 'loading' ? 'Bitte warten ...' : '🎵 Musikwunsch senden'}</button>
+    <main style={styles.page}>
+      <section style={styles.app}>
+        <header style={styles.header}>
+          <div style={styles.logo}>🎧</div>
+          <div>
+            <div style={styles.dj}>DJ DENNIS</div>
+            <div style={styles.title}>WUNSCHBOX</div>
+          </div>
+          <div style={styles.spotify}>Spotify<br />verbunden</div>
+        </header>
+
+        <div style={styles.infoBox}>
+          <div style={styles.infoIcon}>🎵</div>
+          <p>Scanne den QR-Code oder sende deinen Musikwunsch und ich packe ihn in meine Spotify-Wunschliste.</p>
+        </div>
+
+        <form onSubmit={submit} style={styles.form}>
+          <Field icon="👤" label="Dein Name (optional)">
+            <input style={styles.input} name="guest" value={form.guest} onChange={update} placeholder="z. B. Dennis" />
+          </Field>
+
+          <Field icon="🎤" label="Interpret">
+            <input style={styles.input} name="artist" value={form.artist} onChange={update} placeholder="z. B. Roland Kaiser" />
+          </Field>
+
+          <Field icon="🎵" label="Songtitel">
+            <input style={styles.input} name="title" value={form.title} onChange={update} placeholder="z. B. Warum hast du nicht nein gesagt" />
+          </Field>
+
+          <Field icon="💬" label="Gruß optional">
+            <textarea style={styles.textarea} name="message" value={form.message} onChange={update} placeholder="Dein Gruß..." />
+          </Field>
+
+          <button style={styles.button} disabled={status?.type === 'loading'}>
+            {status?.type === 'loading' ? 'Bitte warten ...' : '🎵 MUSIKWUNSCH SENDEN'}
+          </button>
         </form>
-        <p className="counter">Gesendete Wünsche auf diesem Gerät: {count}/3</p>
-        {status && <div className={`status ${status.type}`}>
-          <strong>{status.text}</strong>
-          {status.track && <p>{status.track.artist} – {status.track.title}</p>}
-        </div>}
+
+        <div style={styles.counter}>
+          <span>👥 Gesendete Wünsche</span>
+          <strong>{count}/3</strong>
+        </div>
+
+        {status && (
+          <div style={{
+            ...styles.status,
+            ...(status.type === 'success' ? styles.success : {}),
+            ...(status.type === 'error' ? styles.error : {}),
+            ...(status.type === 'loading' ? styles.loading : {})
+          }}>
+            <strong>{status.text}</strong>
+
+            {status.track && (
+              <div style={styles.track}>
+                {status.track.image && <img src={status.track.image} style={styles.cover} />}
+                <div>
+                  <h3>{status.track.artist}</h3>
+                  <p>{status.track.title}</p>
+                  <small>✅ Zur Playlist hinzugefügt</small>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <footer style={styles.footer}>Powered by Spotify · DJ Dennis</footer>
       </section>
     </main>
   );
 }
+
+function Field({ icon, label, children }) {
+  return (
+    <label style={styles.field}>
+      <div style={styles.label}><span>{icon}</span>{label}</div>
+      {children}
+    </label>
+  );
+}
+
+const styles = {
+  page: {
+    minHeight: '100vh',
+    background: 'radial-gradient(circle at top left, #1db95455, transparent 30%), radial-gradient(circle at bottom right, #00ff8855, transparent 25%), #020403',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 18,
+    color: 'white',
+    fontFamily: 'Arial, Helvetica, sans-serif'
+  },
+  app: {
+    width: '100%',
+    maxWidth: 520,
+    borderRadius: 30,
+    padding: 22,
+    background: 'rgba(3, 10, 7, 0.92)',
+    border: '1px solid rgba(29,185,84,.45)',
+    boxShadow: '0 0 60px rgba(29,185,84,.25), 0 30px 90px #000'
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 24
+  },
+  logo: {
+    fontSize: 48,
+    filter: 'drop-shadow(0 0 15px #1db954)'
+  },
+  dj: {
+    fontSize: 30,
+    fontWeight: 900,
+    letterSpacing: 1
+  },
+  title: {
+    color: '#1db954',
+    fontSize: 25,
+    fontWeight: 900,
+    letterSpacing: 1
+  },
+  spotify: {
+    marginLeft: 'auto',
+    border: '1px solid #1db954',
+    borderRadius: 14,
+    padding: '9px 12px',
+    color: '#dfffe8',
+    fontSize: 13,
+    textAlign: 'center'
+  },
+  infoBox: {
+    display: 'flex',
+    gap: 16,
+    alignItems: 'center',
+    background: 'rgba(255,255,255,.04)',
+    border: '1px solid rgba(29,185,84,.35)',
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 18,
+    lineHeight: 1.5
+  },
+  infoIcon: {
+    fontSize: 36,
+    color: '#1db954'
+  },
+  form: {
+    display: 'grid',
+    gap: 12
+  },
+  field: {
+    display: 'grid',
+    gap: 9,
+    background: 'rgba(255,255,255,.035)',
+    border: '1px solid rgba(29,185,84,.35)',
+    borderRadius: 18,
+    padding: 14
+  },
+  label: {
+    display: 'flex',
+    gap: 10,
+    alignItems: 'center',
+    fontWeight: 800
+  },
+  input: {
+    background: '#050505',
+    color: 'white',
+    border: '1px solid rgba(255,255,255,.2)',
+    borderRadius: 14,
+    padding: 15,
+    fontSize: 16,
+    outline: 'none'
+  },
+  textarea: {
+    background: '#050505',
+    color: 'white',
+    border: '1px solid rgba(255,255,255,.2)',
+    borderRadius: 14,
+    padding: 15,
+    fontSize: 16,
+    minHeight: 95,
+    outline: 'none'
+  },
+  button: {
+    marginTop: 10,
+    border: 0,
+    borderRadius: 18,
+    padding: 18,
+    fontSize: 18,
+    fontWeight: 900,
+    background: 'linear-gradient(135deg,#1db954,#35ff75)',
+    color: '#021607',
+    boxShadow: '0 0 35px rgba(29,185,84,.55)',
+    cursor: 'pointer'
+  },
+  counter: {
+    marginTop: 18,
+    padding: 16,
+    borderRadius: 18,
+    border: '1px solid rgba(29,185,84,.35)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    color: '#ddd'
+  },
+  status: {
+    marginTop: 18,
+    padding: 18,
+    borderRadius: 20
+  },
+  success: {
+    background: 'linear-gradient(135deg,#0d3b1d,#092413)',
+    border: '1px solid #1db954'
+  },
+  error: {
+    background: '#3b1010',
+    border: '1px solid #ff5555'
+  },
+  loading: {
+    background: '#171717',
+    border: '1px solid #555'
+  },
+  track: {
+    marginTop: 14,
+    display: 'flex',
+    gap: 14,
+    alignItems: 'center'
+  },
+  cover: {
+    width: 95,
+    height: 95,
+    borderRadius: 14,
+    objectFit: 'cover'
+  },
+  footer: {
+    textAlign: 'center',
+    marginTop: 22,
+    color: '#aaa',
+    fontSize: 14
+  }
+};
