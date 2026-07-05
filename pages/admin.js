@@ -4,16 +4,14 @@ function NowPlaying({ track }) {
   if (!track) return null;
 
   return (
-    <div style={styles.nowPlaying}>
-      <div style={styles.nowLabel}>🎧 JETZT LÄUFT</div>
+    <div style={styles.now}>
+      🎧 <b>JETZT LÄUFT</b>
 
-      <div style={styles.nowContent}>
-        {track.image && (
-          <img src={track.image} style={styles.nowImg} />
-        )}
+      <div style={styles.nowBox}>
+        {track.image && <img src={track.image} style={styles.img} />}
 
         <div>
-          <h2 style={{ margin: 0 }}>{track.title}</h2>
+          <h3 style={{ margin: 0 }}>{track.title}</h3>
           <p style={{ margin: 0 }}>{track.artist}</p>
         </div>
       </div>
@@ -23,17 +21,26 @@ function NowPlaying({ track }) {
 
 export default function Admin() {
   const [tracks, setTracks] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   async function load() {
-    setLoading(true);
+    try {
+      const res = await fetch('/api/list');
+      const data = await res.json();
 
-    const res = await fetch('/api/list');
-    const data = await res.json();
-
-    setTracks(data.tracks || []);
-    setLoading(false);
+      setTracks(data.tracks || []);
+    } catch (e) {
+      console.log(e);
+    }
   }
+
+  useEffect(() => {
+    load();
+
+    // 🔥 LIVE MODE (kein Flicker, nur smooth refresh)
+    const interval = setInterval(load, 2500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   async function removeTrack(id) {
     await fetch('/api/remove?id=' + id);
@@ -45,61 +52,43 @@ export default function Admin() {
     load();
   }
 
-  useEffect(() => {
-    load();
-    const interval = setInterval(load, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  const nowPlaying = tracks[0];
+  const queue = tracks.slice(1);
 
   return (
     <main style={styles.page}>
-      <h1>🎧 DJ CONTROL MODE</h1>
-      <p>Live Wunschsteuerung</p>
+      <h1>🎧 DJ FINAL MODE</h1>
 
-      {tracks.length > 0 && (
-        <NowPlaying track={tracks[0]} />
+      {/* NOW PLAYING */}
+      <NowPlaying track={nowPlaying} />
+
+      {/* QUEUE */}
+      <h3 style={{ marginTop: 20 }}>📊 Warteschlange</h3>
+
+      {queue.length === 0 && (
+        <p>Keine weiteren Wünsche</p>
       )}
 
-      <button onClick={load} style={styles.button}>
-        🔄 Refresh
-      </button>
+      {queue.map((t) => (
+        <div key={t.id} style={styles.card}>
 
-      {loading && <p>Lade...</p>}
+          {t.image && <img src={t.image} style={styles.imgSmall} />}
 
-      {tracks.length === 0 && !loading && (
-        <p>Keine Wünsche vorhanden</p>
-      )}
-
-      <div style={styles.list}>
-        {tracks.map((t, i) => (
-          <div key={t.id + i} style={styles.card}>
-
-            {t.image && (
-              <img src={t.image} style={styles.img} />
-            )}
-
-            <div style={{ flex: 1 }}>
-              <b>{t.title}</b>
-              <div>{t.artist}</div>
-            </div>
-
-            <button
-              onClick={() => markPlayed(t.id)}
-              style={styles.played}
-            >
-              ✔ gespielt
-            </button>
-
-            <button
-              onClick={() => removeTrack(t.id)}
-              style={styles.delete}
-            >
-              🗑 löschen
-            </button>
-
+          <div style={{ flex: 1 }}>
+            <b>{t.title}</b>
+            <div style={{ opacity: 0.7 }}>{t.artist}</div>
           </div>
-        ))}
-      </div>
+
+          <button onClick={() => markPlayed(t.id)} style={styles.played}>
+            ✔
+          </button>
+
+          <button onClick={() => removeTrack(t.id)} style={styles.delete}>
+            🗑
+          </button>
+
+        </div>
+      ))}
     </main>
   );
 }
@@ -112,18 +101,21 @@ const styles = {
     padding: 20,
     fontFamily: 'Arial'
   },
-  button: {
-    padding: 10,
-    background: '#1db954',
-    border: 0,
-    borderRadius: 10,
-    marginBottom: 15,
-    cursor: 'pointer'
+
+  now: {
+    padding: 15,
+    border: '1px solid #1db954',
+    borderRadius: 12,
+    background: '#111'
   },
-  list: {
-    display: 'grid',
-    gap: 10
+
+  nowBox: {
+    display: 'flex',
+    gap: 10,
+    alignItems: 'center',
+    marginTop: 10
   },
+
   card: {
     display: 'flex',
     gap: 10,
@@ -131,51 +123,35 @@ const styles = {
     padding: 10,
     background: '#111',
     borderRadius: 10,
-    marginBottom: 10,
-    border: '1px solid #333'
+    marginTop: 10
   },
+
   img: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     borderRadius: 8
   },
+
+  imgSmall: {
+    width: 45,
+    height: 45,
+    borderRadius: 6
+  },
+
   played: {
     background: '#1db954',
     border: 0,
     padding: 8,
-    borderRadius: 8,
+    borderRadius: 6,
     cursor: 'pointer'
   },
+
   delete: {
     background: '#ff4444',
     border: 0,
     padding: 8,
-    borderRadius: 8,
+    borderRadius: 6,
     cursor: 'pointer',
     color: '#fff'
-  },
-
-  nowPlaying: {
-    marginTop: 15,
-    marginBottom: 20,
-    padding: 15,
-    borderRadius: 12,
-    background: 'linear-gradient(135deg,#1db95422,#000)',
-    border: '1px solid #1db954'
-  },
-  nowLabel: {
-    color: '#1db954',
-    fontWeight: 'bold',
-    marginBottom: 10
-  },
-  nowContent: {
-    display: 'flex',
-    gap: 10,
-    alignItems: 'center'
-  },
-  nowImg: {
-    width: 60,
-    height: 60,
-    borderRadius: 8
   }
 };
