@@ -140,7 +140,40 @@ export default function Home() {
 
             {suggestions.length > 0 && (
               <div style={styles.suggestions}>
-                {suggestions.map(track => (
+                {suggestions.map((track) => {
+  const isSelected = selectedTrack?.id === track.id;
+
+  return (
+    <button
+      key={track.id}
+      type="button"
+      onClick={() => chooseTrack(track)}
+      style={{
+        ...styles.suggestion,
+        border: isSelected
+          ? '2px solid #1db954'
+          : '1px solid rgba(29,185,84,.35)',
+        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+        background: isSelected
+          ? 'rgba(29,185,84,.15)'
+          : 'rgba(255,255,255,.05)'
+      }}
+    >
+      {track.image && (
+        <img
+          src={track.image}
+          style={styles.suggestionImage}
+          alt=""
+        />
+      )}
+
+      <div style={styles.suggestionText}>
+        <strong>{track.title}</strong>
+        <span>{track.artist}</span>
+      </div>
+    </button>
+  );
+})}
                   <button type="button" key={track.id} style={styles.suggestion} onClick={() => chooseTrack(track)}>
                     {track.image && <img src={track.image} style={styles.suggestionImage} alt="" />}
                     <div style={styles.suggestionText}>
