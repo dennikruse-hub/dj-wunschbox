@@ -4,6 +4,7 @@ export default function Home() {
   const [form, setForm] = useState({ artist: '', title: '', guest: '', message: '' });
   const [status, setStatus] = useState(null);
   const [count, setCount] = useState(0);
+  const [confetti, setConfetti] = useState(false);
 
   useEffect(() => {
     setCount(Number(localStorage.getItem('djwunschbox_count') || '0'));
@@ -11,6 +12,11 @@ export default function Home() {
 
   function update(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  function startConfetti() {
+    setConfetti(true);
+    setTimeout(() => setConfetti(false), 2200);
   }
 
   async function submit(e) {
@@ -35,10 +41,11 @@ export default function Home() {
 
       localStorage.setItem('djwunschbox_count', String(currentCount + 1));
       setCount(currentCount + 1);
+      startConfetti();
 
       setStatus({
         type: 'success',
-        text: 'Wunsch erfolgreich!',
+        text: data.duplicate ? 'Der Song ist schon in der Wunschliste.' : 'Wunsch erfolgreich!',
         track: data.track
       });
 
@@ -50,6 +57,8 @@ export default function Home() {
 
   return (
     <main style={styles.page}>
+      {confetti && <Confetti />}
+
       <section style={styles.app}>
         <header style={styles.header}>
           <div style={styles.logo}>🎧</div>
@@ -103,7 +112,7 @@ export default function Home() {
 
             {status.track && (
               <div style={styles.track}>
-                {status.track.image && <img src={status.track.image} style={styles.cover} />}
+                {status.track.image && <img src={status.track.image} style={styles.cover} alt="Albumcover" />}
                 <div>
                   <h3>{status.track.artist}</h3>
                   <p>{status.track.title}</p>
@@ -134,6 +143,26 @@ function InputCard({ icon, label, optional, children }) {
   );
 }
 
+function Confetti() {
+  const pieces = Array.from({ length: 28 });
+
+  return (
+    <div style={styles.confettiWrap}>
+      {pieces.map((_, i) => (
+        <span
+          key={i}
+          style={{
+            ...styles.confettiPiece,
+            left: `${(i * 37) % 100}%`,
+            animationDelay: `${(i % 8) * 0.08}s`,
+            background: ['#1db954', '#35ff75', '#ffffff', '#ffd23f', '#ff4d8d'][i % 5]
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 const styles = {
   page: {
     minHeight: '100vh',
@@ -143,7 +172,9 @@ const styles = {
     alignItems: 'center',
     padding: 18,
     color: 'white',
-    fontFamily: 'Arial, Helvetica, sans-serif'
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    position: 'relative',
+    overflow: 'hidden'
   },
   app: {
     width: '100%',
@@ -152,7 +183,9 @@ const styles = {
     padding: 22,
     background: 'rgba(3, 10, 7, 0.94)',
     border: '1px solid rgba(29,185,84,.45)',
-    boxShadow: '0 0 60px rgba(29,185,84,.25), 0 30px 90px #000'
+    boxShadow: '0 0 60px rgba(29,185,84,.25), 0 30px 90px #000',
+    position: 'relative',
+    zIndex: 2
   },
   header: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 },
   logo: { fontSize: 52, filter: 'drop-shadow(0 0 15px #1db954)' },
@@ -252,5 +285,20 @@ const styles = {
   loading: { background: '#171717', border: '1px solid #555' },
   track: { marginTop: 14, display: 'flex', gap: 14, alignItems: 'center' },
   cover: { width: 95, height: 95, borderRadius: 14, objectFit: 'cover' },
-  footer: { textAlign: 'center', marginTop: 22, color: '#aaa', fontSize: 14 }
+  footer: { textAlign: 'center', marginTop: 22, color: '#aaa', fontSize: 14 },
+  confettiWrap: {
+    position: 'fixed',
+    inset: 0,
+    pointerEvents: 'none',
+    zIndex: 5,
+    overflow: 'hidden'
+  },
+  confettiPiece: {
+    position: 'absolute',
+    top: -20,
+    width: 10,
+    height: 18,
+    borderRadius: 3,
+    animation: 'fall 2.2s linear forwards'
+  }
 };
