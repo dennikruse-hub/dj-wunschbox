@@ -52,8 +52,21 @@ export default function Home() {
     setSuggestions([]);
   }
 
-  function startConfetti() {
+  function playSound() {
+    const audio = new Audio(
+      "https://actions.google.com/sounds/v1/cartoon/pop.ogg"
+    );
+    audio.play().catch(() => {});
+  }
+
+  function startEffects() {
     setConfetti(true);
+    playSound();
+
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
+
     setTimeout(() => setConfetti(false), 2500);
   }
 
@@ -82,11 +95,11 @@ export default function Home() {
       localStorage.setItem('djwunschbox_count', String(currentCount + 1));
       setCount(currentCount + 1);
 
-      startConfetti();
+      startEffects();
 
       setStatus({
         type: 'success',
-        text: '🎉 Wunsch erfolgreich gesendet!',
+        text: '🎉 Wunsch erfolgreich!',
         track: data.track
       });
 
@@ -101,12 +114,14 @@ export default function Home() {
 
   return (
     <main style={styles.page}>
+
       {confetti && (
         <div style={styles.confettiWrap}>
-          {Array.from({ length: 40 }).map((_, i) => (
+          {Array.from({ length: 50 }).map((_, i) => (
             <span key={i} style={{
               ...styles.confetti,
               left: `${Math.random() * 100}%`,
+              background: i % 2 === 0 ? '#1db954' : '#ffffff',
               animationDelay: `${Math.random() * 0.5}s`
             }} />
           ))}
@@ -116,7 +131,7 @@ export default function Home() {
       <section style={styles.card}>
 
         <h1>🎧 DJ Wunschbox</h1>
-        <p>Tippe deinen Song ein und wähle aus Spotify</p>
+        <p>Tippe deinen Song ein und starte die Party</p>
 
         <form onSubmit={submit} style={styles.form}>
 
@@ -130,32 +145,29 @@ export default function Home() {
             </div>
           )}
 
-          {suggestions.map(track => {
-            const active = selectedTrack?.id === track.id;
+          {suggestions.map(track => (
+            <div
+              key={track.id}
+              onClick={() => chooseTrack(track)}
+              style={{
+                ...styles.item,
+                border: selectedTrack?.id === track.id
+                  ? '2px solid #1db954'
+                  : '1px solid #333'
+              }}
+            >
+              {track.image && (
+                <img src={track.image} style={styles.img} />
+              )}
 
-            return (
-              <div
-                key={track.id}
-                onClick={() => chooseTrack(track)}
-                style={{
-                  ...styles.item,
-                  border: active ? '2px solid #1db954' : '1px solid #333',
-                  transform: active ? 'scale(1.02)' : 'scale(1)'
-                }}
-              >
-                {track.image && (
-                  <img src={track.image} style={styles.img} />
-                )}
-
-                <div>
-                  <b>{track.title}</b>
-                  <div style={{ fontSize: 12, opacity: 0.7 }}>
-                    {track.artist}
-                  </div>
+              <div>
+                <b>{track.title}</b>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>
+                  {track.artist}
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
 
           {selectedTrack && (
             <div style={styles.selected}>
@@ -270,7 +282,7 @@ const styles = {
     top: -20,
     width: 8,
     height: 14,
-    background: '#1db954',
+    borderRadius: 4,
     animation: 'fall 2.5s linear forwards'
   }
 };
