@@ -7,14 +7,16 @@ export default function DjDock() {
     <>
       {/* FLOAT BUTTON */}
       <div style={styles.fab} onClick={() => setOpen(!open)}>
-        🎛 DJ
+        🎧 DJ
       </div>
 
       {/* PANEL */}
       {open && (
         <div style={styles.panel}>
 
-          <h3 style={{ marginTop: 0 }}>🎧 DJ CONTROL PANEL</h3>
+          <div style={styles.title}>
+            🎛 DJ CONTROL
+          </div>
 
           <button
             style={styles.btn}
@@ -25,23 +27,27 @@ export default function DjDock() {
 
           <button
             style={styles.btn}
-            onClick={() => window.location.href = '/screen'}
+            onClick={() => window.location.href = '/'}
           >
-            📺 Live Screen
+            🎵 Wunschbox
           </button>
 
           <button
             style={styles.btn}
-            onClick={() => window.open('https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG')}
+            onClick={() =>
+              window.open(
+                'https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG'
+              )
+            }
           >
             💸 PayPal Trinkgeld
           </button>
 
           <button
             style={styles.btn}
-            onClick={() => alert('🔔 Live Wünsche aktiv')}
+            onClick={() => alert('🔔 System aktiv')}
           >
-            🔔 Live Status
+            🔔 Status
           </button>
 
         </div>
@@ -78,8 +84,13 @@ const styles = {
     border: '1px solid #1db954',
     borderRadius: 12,
     padding: 12,
-    boxShadow: '0 0 30px rgba(0,0,0,0.6)',
     zIndex: 9999
+  },
+
+  title: {
+    color: '#1db954',
+    fontWeight: 'bold',
+    marginBottom: 10
   },
 
   btn: {
