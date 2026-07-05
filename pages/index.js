@@ -1,10 +1,4 @@
 import { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import InputCard from '../components/InputCard';
-import Confetti from '../components/Confetti';
-import SongSuggestions from '../components/SongSuggestions';
-import SelectedSong from '../components/SelectedSong';
-import SuccessCard from '../components/SuccessCard';
 
 export default function Home() {
   const [form, setForm] = useState({ artist: '', title: '', guest: '', message: '' });
@@ -103,57 +97,148 @@ export default function Home() {
   }
 
   return (
-    <main style={styles.page}>
-      {confetti && <Confetti />}
+    <>
+      <style jsx global>{`
+        @keyframes confettiFall {
+          0% { transform: translateY(-40px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+      `}</style>
 
-      <section style={styles.app}>
-        <Header />
+      <main style={styles.page}>
+        {confetti && <Confetti />}
 
-        <div style={styles.infoBox}>
-          <div style={styles.infoIcon}>🎵</div>
-          <p>Tippe Interpret oder Songtitel ein und wähle direkt einen Spotify-Vorschlag aus.</p>
+        <section style={styles.app}>
+          <header style={styles.header}>
+            <div style={styles.logo}>🎧</div>
+            <div>
+              <div style={styles.dj}>DJ DENNIS</div>
+              <div style={styles.title}>WUNSCHBOX</div>
+            </div>
+            <div style={styles.spotify}>● Spotify<br />verbunden</div>
+          </header>
+
+          <div style={styles.infoBox}>
+            <div style={styles.infoIcon}>🎵</div>
+            <p>Tippe Interpret oder Songtitel ein und wähle direkt einen Spotify-Vorschlag aus.</p>
+          </div>
+
+          <form onSubmit={submit} style={styles.form}>
+            <InputCard icon="👤" label="Dein Name" optional>
+              <input style={styles.input} name="guest" value={form.guest} onChange={update} placeholder="z. B. Dennis" />
+            </InputCard>
+
+            <InputCard icon="🎤" label="Interpret">
+              <input style={styles.input} name="artist" value={form.artist} onChange={update} placeholder="z. B. Roland Kaiser" />
+            </InputCard>
+
+            <InputCard icon="🎵" label="Songtitel">
+              <input style={styles.input} name="title" value={form.title} onChange={update} placeholder="z. B. Warum hast du nicht nein gesagt" />
+            </InputCard>
+
+            {searching && <div style={styles.searching}>🔎 Suche passende Songs...</div>}
+
+            {suggestions.length > 0 && (
+              <div style={styles.suggestions}>
+                {suggestions.map(track => (
+                  <button type="button" key={track.id} style={styles.suggestion} onClick={() => chooseTrack(track)}>
+                    {track.image && <img src={track.image} style={styles.suggestionImage} alt="" />}
+                    <div style={styles.suggestionText}>
+                      <strong>{track.title}</strong>
+                      <span>{track.artist}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedTrack && (
+              <div style={styles.selectedSong}>
+                {selectedTrack.image && <img src={selectedTrack.image} style={styles.selectedCover} alt="Albumcover" />}
+                <div>
+                  <div style={styles.selectedLabel}>Ausgewählter Song</div>
+                  <h3 style={{ margin: '4px 0' }}>{selectedTrack.title}</h3>
+                  <p style={{ margin: 0 }}>{selectedTrack.artist}</p>
+                </div>
+              </div>
+            )}
+
+            <InputCard icon="💬" label="Gruß" optional>
+              <textarea style={styles.textarea} name="message" value={form.message} onChange={update} placeholder="Dein Gruß..." />
+            </InputCard>
+
+            <button style={styles.button} disabled={status?.type === 'loading'}>
+              {status?.type === 'loading' ? '🔎 Suche Song ...' : '🎵 MUSIKWUNSCH SENDEN'}
+            </button>
+          </form>
+
+          <div style={styles.counter}>
+            <span>👥 Gesendete Wünsche</span>
+            <strong>{count}/3</strong>
+          </div>
+
+          {status && (
+            <div style={{
+              ...styles.status,
+              ...(status.type === 'success' ? styles.success : {}),
+              ...(status.type === 'error' ? styles.error : {}),
+              ...(status.type === 'loading' ? styles.loading : {})
+            }}>
+              <strong>{status.text}</strong>
+
+              {status.track && (
+                <div style={styles.track}>
+                  {status.track.image && <img src={status.track.image} style={styles.cover} alt="Albumcover" />}
+                  <div>
+                    <h3 style={{ margin: 0 }}>{status.track.artist}</h3>
+                    <p>{status.track.title}</p>
+                    <small>✅ Zur Spotify-Playlist hinzugefügt</small>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <footer style={styles.footer}>Powered by Spotify · DJ Dennis</footer>
+        </section>
+      </main>
+    </>
+  );
+}
+
+function InputCard({ icon, label, optional, children }) {
+  return (
+    <label style={styles.field}>
+      <div style={styles.iconCircle}>{icon}</div>
+      <div style={styles.fieldContent}>
+        <div style={styles.label}>
+          {label} {optional && <span style={styles.optional}>(optional)</span>}
         </div>
+        {children}
+      </div>
+    </label>
+  );
+}
 
-        <form onSubmit={submit} style={styles.form}>
-          <InputCard icon="👤" label="Dein Name" optional>
-            <input style={styles.input} name="guest" value={form.guest} onChange={update} placeholder="z. B. Dennis" />
-          </InputCard>
+function Confetti() {
+  const colors = ['#1db954', '#35ff75', '#ffffff', '#ffd23f', '#ff4d8d', '#00e5ff'];
+  const pieces = Array.from({ length: 45 });
 
-          <InputCard icon="🎤" label="Interpret">
-            <input style={styles.input} name="artist" value={form.artist} onChange={update} placeholder="z. B. Roland Kaiser" />
-          </InputCard>
-
-          <InputCard icon="🎵" label="Songtitel">
-            <input style={styles.input} name="title" value={form.title} onChange={update} placeholder="z. B. Warum hast du nicht nein gesagt" />
-          </InputCard>
-
-          <SongSuggestions
-            searching={searching}
-            suggestions={suggestions}
-            chooseTrack={chooseTrack}
-          />
-
-          <SelectedSong track={selectedTrack} />
-
-          <InputCard icon="💬" label="Gruß" optional>
-            <textarea style={styles.textarea} name="message" value={form.message} onChange={update} placeholder="Dein Gruß..." />
-          </InputCard>
-
-          <button style={styles.button} disabled={status?.type === 'loading'}>
-            {status?.type === 'loading' ? '🔎 Suche Song ...' : '🎵 MUSIKWUNSCH SENDEN'}
-          </button>
-        </form>
-
-        <div style={styles.counter}>
-          <span>👥 Gesendete Wünsche</span>
-          <strong>{count}/3</strong>
-        </div>
-
-        <SuccessCard status={status} />
-
-        <footer style={styles.footer}>Powered by Spotify · DJ Dennis</footer>
-      </section>
-    </main>
+  return (
+    <div style={styles.confettiWrap}>
+      {pieces.map((_, i) => (
+        <span
+          key={i}
+          style={{
+            ...styles.confettiPiece,
+            left: `${(i * 23) % 100}%`,
+            background: colors[i % colors.length],
+            animationDelay: `${(i % 10) * 0.08}s`,
+            animationDuration: `${1.8 + (i % 5) * 0.25}s`
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -181,6 +266,19 @@ const styles = {
     position: 'relative',
     zIndex: 2
   },
+  header: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 },
+  logo: { fontSize: 52, filter: 'drop-shadow(0 0 15px #1db954)' },
+  dj: { fontSize: 30, fontWeight: 900, letterSpacing: 1 },
+  title: { color: '#1db954', fontSize: 25, fontWeight: 900, letterSpacing: 1 },
+  spotify: {
+    marginLeft: 'auto',
+    border: '1px solid #1db954',
+    borderRadius: 14,
+    padding: '9px 12px',
+    color: '#dfffe8',
+    fontSize: 13,
+    textAlign: 'center'
+  },
   infoBox: {
     display: 'flex',
     gap: 16,
@@ -194,6 +292,28 @@ const styles = {
   },
   infoIcon: { fontSize: 40 },
   form: { display: 'grid', gap: 12 },
+  field: {
+    display: 'flex',
+    gap: 14,
+    background: 'rgba(255,255,255,.035)',
+    border: '1px solid rgba(29,185,84,.35)',
+    borderRadius: 18,
+    padding: 14
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    minWidth: 44,
+    borderRadius: 999,
+    background: 'rgba(29,185,84,.18)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 24
+  },
+  fieldContent: { flex: 1, display: 'grid', gap: 8 },
+  label: { fontWeight: 900 },
+  optional: { color: '#aaa', fontWeight: 500 },
   input: {
     background: '#050505',
     color: 'white',
@@ -215,6 +335,43 @@ const styles = {
     outline: 'none',
     width: '100%'
   },
+  searching: { color: '#bfffd0', padding: '8px', fontSize: 14 },
+  suggestions: { display: 'grid', gap: 8 },
+  suggestion: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+    padding: 10,
+    borderRadius: 16,
+    background: 'rgba(255,255,255,.05)',
+    border: '1px solid rgba(29,185,84,.35)',
+    cursor: 'pointer',
+    color: 'white',
+    textAlign: 'left'
+  },
+  suggestionImage: { width: 55, height: 55, borderRadius: 10, objectFit: 'cover' },
+  suggestionText: { display: 'grid', gap: 4 },
+  selectedSong: {
+    display: 'flex',
+    gap: 14,
+    alignItems: 'center',
+    background: 'linear-gradient(135deg, rgba(29,185,84,.18), rgba(255,255,255,.04))',
+    border: '1px solid rgba(29,185,84,.45)',
+    borderRadius: 20,
+    padding: 14
+  },
+  selectedCover: {
+    width: 86,
+    height: 86,
+    borderRadius: 16,
+    objectFit: 'cover'
+  },
+  selectedLabel: {
+    color: '#1db954',
+    fontSize: 13,
+    fontWeight: 900
+  },
   button: {
     marginTop: 10,
     border: 0,
@@ -224,7 +381,6 @@ const styles = {
     fontWeight: 900,
     background: 'linear-gradient(135deg,#1db954,#35ff75)',
     color: '#021607',
-    boxShadow: '0 0 35px rgba(29,185,84,.55)',
     cursor: 'pointer'
   },
   counter: {
@@ -237,10 +393,28 @@ const styles = {
     alignItems: 'center',
     color: '#ddd'
   },
-  footer: {
-    textAlign: 'center',
-    marginTop: 22,
-    color: '#aaa',
-    fontSize: 14
+  status: { marginTop: 18, padding: 18, borderRadius: 20 },
+  success: { background: 'linear-gradient(135deg,#0d3b1d,#092413)', border: '1px solid #1db954' },
+  error: { background: '#3b1010', border: '1px solid #ff5555' },
+  loading: { background: '#171717', border: '1px solid #555' },
+  track: { marginTop: 14, display: 'flex', gap: 14, alignItems: 'center' },
+  cover: { width: 95, height: 95, borderRadius: 14, objectFit: 'cover' },
+  footer: { textAlign: 'center', marginTop: 22, color: '#aaa', fontSize: 14 },
+  confettiWrap: {
+    position: 'fixed',
+    inset: 0,
+    pointerEvents: 'none',
+    zIndex: 99,
+    overflow: 'hidden'
+  },
+  confettiPiece: {
+    position: 'absolute',
+    top: -30,
+    width: 10,
+    height: 18,
+    borderRadius: 4,
+    animationName: 'confettiFall',
+    animationTimingFunction: 'linear',
+    animationFillMode: 'forwards'
   }
 };
