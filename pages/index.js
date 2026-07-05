@@ -7,6 +7,7 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState([]);
   const [searching, setSearching] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState(null);
+  const [confetti, setConfetti] = useState(false);
 
   useEffect(() => {
     setCount(Number(localStorage.getItem('djwunschbox_count') || '0'));
@@ -51,6 +52,11 @@ export default function Home() {
     setSuggestions([]);
   }
 
+  function startConfetti() {
+    setConfetti(true);
+    setTimeout(() => setConfetti(false), 2500);
+  }
+
   async function submit(e) {
     e.preventDefault();
 
@@ -76,9 +82,11 @@ export default function Home() {
       localStorage.setItem('djwunschbox_count', String(currentCount + 1));
       setCount(currentCount + 1);
 
+      startConfetti();
+
       setStatus({
         type: 'success',
-        text: 'Wunsch gespeichert 🎉',
+        text: '🎉 Wunsch erfolgreich gesendet!',
         track: data.track
       });
 
@@ -93,6 +101,18 @@ export default function Home() {
 
   return (
     <main style={styles.page}>
+      {confetti && (
+        <div style={styles.confettiWrap}>
+          {Array.from({ length: 40 }).map((_, i) => (
+            <span key={i} style={{
+              ...styles.confetti,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 0.5}s`
+            }} />
+          ))}
+        </div>
+      )}
+
       <section style={styles.card}>
 
         <h1>🎧 DJ Wunschbox</h1>
@@ -120,8 +140,7 @@ export default function Home() {
                 style={{
                   ...styles.item,
                   border: active ? '2px solid #1db954' : '1px solid #333',
-                  transform: active ? 'scale(1.02)' : 'scale(1)',
-                  background: active ? 'rgba(29,185,84,0.15)' : '#111'
+                  transform: active ? 'scale(1.02)' : 'scale(1)'
                 }}
               >
                 {track.image && (
@@ -140,7 +159,7 @@ export default function Home() {
 
           {selectedTrack && (
             <div style={styles.selected}>
-              🎯 Ausgewählt: {selectedTrack.artist} - {selectedTrack.title}
+              🎯 {selectedTrack.artist} - {selectedTrack.title}
             </div>
           )}
 
@@ -191,8 +210,7 @@ const styles = {
     maxWidth: 520,
     background: '#111',
     padding: 22,
-    borderRadius: 18,
-    boxShadow: '0 20px 60px rgba(0,0,0,0.6)'
+    borderRadius: 18
   },
   form: { display: 'grid', gap: 10 },
   input: {
@@ -217,8 +235,7 @@ const styles = {
     marginTop: 6,
     borderRadius: 10,
     cursor: 'pointer',
-    alignItems: 'center',
-    transition: 'all 0.2s'
+    alignItems: 'center'
   },
   img: {
     width: 40,
@@ -241,5 +258,19 @@ const styles = {
     padding: 10,
     background: '#222',
     borderRadius: 10
+  },
+  confettiWrap: {
+    position: 'fixed',
+    inset: 0,
+    pointerEvents: 'none',
+    overflow: 'hidden'
+  },
+  confetti: {
+    position: 'absolute',
+    top: -20,
+    width: 8,
+    height: 14,
+    background: '#1db954',
+    animation: 'fall 2.5s linear forwards'
   }
 };
