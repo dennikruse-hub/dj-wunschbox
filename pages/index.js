@@ -16,7 +16,7 @@ export default function Home() {
 
   function startConfetti() {
     setConfetti(true);
-    setTimeout(() => setConfetti(false), 2200);
+    setTimeout(() => setConfetti(false), 2500);
   }
 
   async function submit(e) {
@@ -45,7 +45,7 @@ export default function Home() {
 
       setStatus({
         type: 'success',
-        text: data.duplicate ? 'Der Song ist schon in der Wunschliste.' : 'Wunsch erfolgreich!',
+        text: 'Wunsch erfolgreich!',
         track: data.track
       });
 
@@ -56,76 +56,85 @@ export default function Home() {
   }
 
   return (
-    <main style={styles.page}>
-      {confetti && <Confetti />}
+    <>
+      <style jsx global>{`
+        @keyframes confettiFall {
+          0% { transform: translateY(-40px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+      `}</style>
 
-      <section style={styles.app}>
-        <header style={styles.header}>
-          <div style={styles.logo}>🎧</div>
-          <div>
-            <div style={styles.dj}>DJ DENNIS</div>
-            <div style={styles.title}>WUNSCHBOX</div>
+      <main style={styles.page}>
+        {confetti && <Confetti />}
+
+        <section style={styles.app}>
+          <header style={styles.header}>
+            <div style={styles.logo}>🎧</div>
+            <div>
+              <div style={styles.dj}>DJ DENNIS</div>
+              <div style={styles.title}>WUNSCHBOX</div>
+            </div>
+            <div style={styles.spotify}>● Spotify<br />verbunden</div>
+          </header>
+
+          <div style={styles.infoBox}>
+            <div style={styles.infoIcon}>🎵</div>
+            <p>Scanne den QR-Code oder sende deinen Musikwunsch direkt an DJ Dennis.</p>
           </div>
-          <div style={styles.spotify}>● Spotify<br />verbunden</div>
-        </header>
 
-        <div style={styles.infoBox}>
-          <div style={styles.infoIcon}>🎵</div>
-          <p>Scanne den QR-Code oder sende deinen Musikwunsch direkt an DJ Dennis.</p>
-        </div>
+          <form onSubmit={submit} style={styles.form}>
+            <InputCard icon="👤" label="Dein Name" optional>
+              <input style={styles.input} name="guest" value={form.guest} onChange={update} placeholder="z. B. Dennis" />
+            </InputCard>
 
-        <form onSubmit={submit} style={styles.form}>
-          <InputCard icon="👤" label="Dein Name" optional>
-            <input style={styles.input} name="guest" value={form.guest} onChange={update} placeholder="z. B. Dennis" />
-          </InputCard>
+            <InputCard icon="🎤" label="Interpret">
+              <input style={styles.input} name="artist" value={form.artist} onChange={update} placeholder="z. B. Roland Kaiser" />
+            </InputCard>
 
-          <InputCard icon="🎤" label="Interpret">
-            <input style={styles.input} name="artist" value={form.artist} onChange={update} placeholder="z. B. Roland Kaiser" />
-          </InputCard>
+            <InputCard icon="🎵" label="Songtitel">
+              <input style={styles.input} name="title" value={form.title} onChange={update} placeholder="z. B. Warum hast du nicht nein gesagt" />
+            </InputCard>
 
-          <InputCard icon="🎵" label="Songtitel">
-            <input style={styles.input} name="title" value={form.title} onChange={update} placeholder="z. B. Warum hast du nicht nein gesagt" />
-          </InputCard>
+            <InputCard icon="💬" label="Gruß" optional>
+              <textarea style={styles.textarea} name="message" value={form.message} onChange={update} placeholder="Dein Gruß..." />
+            </InputCard>
 
-          <InputCard icon="💬" label="Gruß" optional>
-            <textarea style={styles.textarea} name="message" value={form.message} onChange={update} placeholder="Dein Gruß..." />
-          </InputCard>
+            <button style={styles.button} disabled={status?.type === 'loading'}>
+              {status?.type === 'loading' ? '🔎 Suche Song ...' : '🎵 MUSIKWUNSCH SENDEN'}
+            </button>
+          </form>
 
-          <button style={styles.button} disabled={status?.type === 'loading'}>
-            {status?.type === 'loading' ? '🔎 Suche Song ...' : '🎵 MUSIKWUNSCH SENDEN'}
-          </button>
-        </form>
+          <div style={styles.counter}>
+            <span>👥 Gesendete Wünsche</span>
+            <strong>{count}/3</strong>
+          </div>
 
-        <div style={styles.counter}>
-          <span>👥 Gesendete Wünsche</span>
-          <strong>{count}/3</strong>
-        </div>
+          {status && (
+            <div style={{
+              ...styles.status,
+              ...(status.type === 'success' ? styles.success : {}),
+              ...(status.type === 'error' ? styles.error : {}),
+              ...(status.type === 'loading' ? styles.loading : {})
+            }}>
+              <strong>{status.text}</strong>
 
-        {status && (
-          <div style={{
-            ...styles.status,
-            ...(status.type === 'success' ? styles.success : {}),
-            ...(status.type === 'error' ? styles.error : {}),
-            ...(status.type === 'loading' ? styles.loading : {})
-          }}>
-            <strong>{status.text}</strong>
-
-            {status.track && (
-              <div style={styles.track}>
-                {status.track.image && <img src={status.track.image} style={styles.cover} alt="Albumcover" />}
-                <div>
-                  <h3>{status.track.artist}</h3>
-                  <p>{status.track.title}</p>
-                  <small>✅ Zur Spotify-Playlist hinzugefügt</small>
+              {status.track && (
+                <div style={styles.track}>
+                  {status.track.image && <img src={status.track.image} style={styles.cover} alt="Albumcover" />}
+                  <div>
+                    <h3>{status.track.artist}</h3>
+                    <p>{status.track.title}</p>
+                    <small>✅ Zur Spotify-Playlist hinzugefügt</small>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
-        <footer style={styles.footer}>Powered by Spotify · DJ Dennis</footer>
-      </section>
-    </main>
+          <footer style={styles.footer}>Powered by Spotify · DJ Dennis</footer>
+        </section>
+      </main>
+    </>
   );
 }
 
@@ -144,7 +153,8 @@ function InputCard({ icon, label, optional, children }) {
 }
 
 function Confetti() {
-  const pieces = Array.from({ length: 28 });
+  const colors = ['#1db954', '#35ff75', '#ffffff', '#ffd23f', '#ff4d8d', '#00e5ff'];
+  const pieces = Array.from({ length: 45 });
 
   return (
     <div style={styles.confettiWrap}>
@@ -153,9 +163,10 @@ function Confetti() {
           key={i}
           style={{
             ...styles.confettiPiece,
-            left: `${(i * 37) % 100}%`,
-            animationDelay: `${(i % 8) * 0.08}s`,
-            background: ['#1db954', '#35ff75', '#ffffff', '#ffd23f', '#ff4d8d'][i % 5]
+            left: `${(i * 23) % 100}%`,
+            background: colors[i % colors.length],
+            animationDelay: `${(i % 10) * 0.08}s`,
+            animationDuration: `${1.8 + (i % 5) * 0.25}s`
           }}
         />
       ))}
@@ -290,15 +301,17 @@ const styles = {
     position: 'fixed',
     inset: 0,
     pointerEvents: 'none',
-    zIndex: 5,
+    zIndex: 99,
     overflow: 'hidden'
   },
   confettiPiece: {
     position: 'absolute',
-    top: -20,
+    top: -30,
     width: 10,
     height: 18,
-    borderRadius: 3,
-    animation: 'fall 2.2s linear forwards'
+    borderRadius: 4,
+    animationName: 'confettiFall',
+    animationTimingFunction: 'linear',
+    animationFillMode: 'forwards'
   }
 };
