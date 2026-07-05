@@ -5,51 +5,30 @@ export default function DjDock() {
 
   return (
     <>
-      {/* FLOAT BUTTON */}
       <div style={styles.fab} onClick={() => setOpen(!open)}>
         🎧 DJ
       </div>
 
-      {/* PANEL */}
       {open && (
         <div style={styles.panel}>
+          <h3 style={{ color: '#1db954', marginTop: 0 }}>DJ PANEL</h3>
 
-          <div style={styles.title}>
-            🎛 DJ CONTROL
-          </div>
-
-          <button
-            style={styles.btn}
-            onClick={() => window.location.href = '/admin'}
-          >
-            🎛 Admin Panel
+          <button style={styles.btn} onClick={() => window.location.href = '/admin'}>
+            🎛 Admin
           </button>
 
-          <button
-            style={styles.btn}
-            onClick={() => window.location.href = '/'}
-          >
+          <button style={styles.btn} onClick={() => window.location.href = '/'}>
             🎵 Wunschbox
           </button>
 
           <button
             style={styles.btn}
             onClick={() =>
-              window.open(
-                'https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG'
-              )
+              window.open('https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG')
             }
           >
-            💸 PayPal Trinkgeld
+            💸 PayPal
           </button>
-
-          <button
-            style={styles.btn}
-            onClick={() => alert('🔔 System aktiv')}
-          >
-            🔔 Status
-          </button>
-
         </div>
       )}
     </>
@@ -71,7 +50,6 @@ const styles = {
     alignItems: 'center',
     fontWeight: 'bold',
     cursor: 'pointer',
-    boxShadow: '0 0 20px rgba(29,185,84,0.5)',
     zIndex: 9999
   },
 
@@ -79,18 +57,12 @@ const styles = {
     position: 'fixed',
     bottom: 90,
     right: 20,
-    width: 220,
+    width: 200,
     background: '#111',
     border: '1px solid #1db954',
     borderRadius: 12,
     padding: 12,
     zIndex: 9999
-  },
-
-  title: {
-    color: '#1db954',
-    fontWeight: 'bold',
-    marginBottom: 10
   },
 
   btn: {
