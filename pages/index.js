@@ -5,13 +5,48 @@ export default function Home() {
   const [status, setStatus] = useState(null);
   const [count, setCount] = useState(0);
   const [confetti, setConfetti] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     setCount(Number(localStorage.getItem('djwunschbox_count') || '0'));
   }, []);
 
+  useEffect(() => {
+    const query = `${form.artist} ${form.title}`.trim();
+
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setSearching(true);
+        const res = await fetch('/api/search?q=' + encodeURIComponent(query));
+        const data = await res.json();
+        setSuggestions(data.tracks || []);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [form.artist, form.title]);
+
   function update(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  function chooseTrack(track) {
+    setForm({
+      ...form,
+      artist: track.artist,
+      title: track.title
+    });
+    setSuggestions([]);
   }
 
   function startConfetti() {
@@ -24,6 +59,7 @@ export default function Home() {
     setStatus({ type: 'loading', text: 'Suche deinen Song bei Spotify ...' });
 
     const currentCount = Number(localStorage.getItem('djwunschbox_count') || '0');
+
     if (currentCount >= 3) {
       setStatus({ type: 'error', text: 'Du hast bereits 3 Wünsche gesendet. Danke!' });
       return;
@@ -50,6 +86,7 @@ export default function Home() {
       });
 
       setForm({ artist: '', title: '', guest: '', message: '' });
+      setSuggestions([]);
     } catch (err) {
       setStatus({ type: 'error', text: err.message });
     }
@@ -79,7 +116,7 @@ export default function Home() {
 
           <div style={styles.infoBox}>
             <div style={styles.infoIcon}>🎵</div>
-            <p>Scanne den QR-Code oder sende deinen Musikwunsch direkt an DJ Dennis.</p>
+            <p>Tippe Interpret oder Songtitel ein und wähle direkt einen Spotify-Vorschlag aus.</p>
           </div>
 
           <form onSubmit={submit} style={styles.form}>
@@ -94,6 +131,27 @@ export default function Home() {
             <InputCard icon="🎵" label="Songtitel">
               <input style={styles.input} name="title" value={form.title} onChange={update} placeholder="z. B. Warum hast du nicht nein gesagt" />
             </InputCard>
+
+            {searching && <div style={styles.searching}>🔎 Suche passende Songs ...</div>}
+
+            {suggestions.length > 0 && (
+              <div style={styles.suggestions}>
+                {suggestions.map(track => (
+                  <button
+                    type="button"
+                    key={track.id}
+                    style={styles.suggestion}
+                    onClick={() => chooseTrack(track)}
+                  >
+                    {track.image && <img src={track.image} style={styles.suggestionImage} alt="" />}
+                    <div style={styles.suggestionText}>
+                      <strong>{track.title}</strong>
+                      <span>{track.artist}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
 
             <InputCard icon="💬" label="Gruß" optional>
               <textarea style={styles.textarea} name="message" value={form.message} onChange={update} placeholder="Dein Gruß..." />
@@ -267,6 +325,38 @@ const styles = {
     minHeight: 95,
     outline: 'none',
     width: '100%'
+  },
+  searching: {
+    color: '#bfffd0',
+    fontSize: 14,
+    padding: '4px 8px'
+  },
+  suggestions: {
+    display: 'grid',
+    gap: 8
+  },
+  suggestion: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+    textAlign: 'left',
+    background: 'rgba(255,255,255,.055)',
+    border: '1px solid rgba(29,185,84,.35)',
+    borderRadius: 16,
+    padding: 10,
+    color: 'white',
+    cursor: 'pointer'
+  },
+  suggestionImage: {
+    width: 54,
+    height: 54,
+    borderRadius: 10,
+    objectFit: 'cover'
+  },
+  suggestionText: {
+    display: 'grid',
+    gap: 4
   },
   button: {
     marginTop: 10,
