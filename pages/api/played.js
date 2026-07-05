@@ -1,13 +1,17 @@
 export default async function handler(req, res) {
   try {
-    const trackId = req.query.id;
+    const id = req.query.id;
 
-    // nur "simuliert gespielt"
-    // (optional später Spotify Playlist Verschiebung)
+    if (!id) {
+      return res.status(400).json({ error: 'Missing track id' });
+    }
+
+    // aktuell nur LOGIC PLACEHOLDER
+    // (Spotify hat kein "played flag", daher simulieren wir es sauber)
 
     return res.status(200).json({
       ok: true,
-      played: trackId
+      played: id
     });
 
   } catch (err) {
