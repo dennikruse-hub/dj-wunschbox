@@ -78,7 +78,7 @@ export default function Home() {
 
       setStatus({
         type: 'success',
-        text: 'Wunsch erfolgreich!',
+        text: 'Wunsch erfolgreich gesendet!',
         track: data.track
       });
 
@@ -100,58 +100,47 @@ export default function Home() {
 
         <form onSubmit={submit} style={styles.form}>
 
-          <input
-            name="guest"
-            placeholder="Dein Name"
-            value={form.guest}
-            onChange={update}
-            style={styles.input}
-          />
-
-          <input
-            name="artist"
-            placeholder="Interpret"
-            value={form.artist}
-            onChange={update}
-            style={styles.input}
-          />
-
-          <input
-            name="title"
-            placeholder="Songtitel"
-            value={form.title}
-            onChange={update}
-            style={styles.input}
-          />
+          <input name="guest" placeholder="Dein Name" value={form.guest} onChange={update} style={styles.input} />
+          <input name="artist" placeholder="Interpret" value={form.artist} onChange={update} style={styles.input} />
+          <input name="title" placeholder="Songtitel" value={form.title} onChange={update} style={styles.input} />
 
           {/* SEARCH */}
-          {searching && <p>🔎 Suche...</p>}
+          {searching && (
+            <div style={styles.loading}>
+              🔎 Spotify sucht...
+            </div>
+          )}
 
-          {suggestions.map(track => {
-            const active = selectedTrack?.id === track.id;
+          {suggestions.map(track => (
+            <div
+              key={track.id}
+              onClick={() => chooseTrack(track)}
+              style={{
+                ...styles.item,
+                border: selectedTrack?.id === track.id
+                  ? '2px solid #1db954'
+                  : '1px solid #333'
+              }}
+            >
+              {track.image && (
+                <img src={track.image} style={styles.img} />
+              )}
 
-            return (
-              <div
-                key={track.id}
-                onClick={() => chooseTrack(track)}
-                style={{
-                  ...styles.item,
-                  border: active ? '2px solid #1db954' : '1px solid #333'
-                }}
-              >
-                {track.image && (
-                  <img src={track.image} style={styles.img} />
-                )}
-
-                <div>
-                  <b>{track.title}</b>
-                  <div style={{ fontSize: 12, opacity: 0.7 }}>
-                    {track.artist}
-                  </div>
+              <div>
+                <b>{track.title}</b>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>
+                  {track.artist}
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
+
+          {selectedTrack && (
+            <div style={styles.selected}>
+              <b>Ausgewählt:</b>
+              <div>{selectedTrack.artist} - {selectedTrack.title}</div>
+            </div>
+          )}
 
           <textarea
             name="message"
@@ -173,9 +162,9 @@ export default function Home() {
           <div style={styles.status}>
             <b>{status.text}</b>
             {status.track && (
-              <p>
+              <div>
                 {status.track.artist} - {status.track.title}
-              </p>
+              </div>
             )}
           </div>
         )}
@@ -233,6 +222,18 @@ const styles = {
     width: 40,
     height: 40,
     borderRadius: 6
+  },
+  loading: {
+    padding: 10,
+    background: '#222',
+    borderRadius: 10,
+    fontSize: 13
+  },
+  selected: {
+    padding: 10,
+    background: '#1db95422',
+    border: '1px solid #1db954',
+    borderRadius: 10
   },
   status: {
     marginTop: 15,
