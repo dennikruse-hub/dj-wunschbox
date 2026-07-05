@@ -7,7 +7,6 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState([]);
   const [searching, setSearching] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState(null);
-  const [confetti, setConfetti] = useState(false);
 
   useEffect(() => {
     setCount(Number(localStorage.getItem('djwunschbox_count') || '0'));
@@ -52,24 +51,6 @@ export default function Home() {
     setSuggestions([]);
   }
 
-  function playSound() {
-    const audio = new Audio(
-      "https://actions.google.com/sounds/v1/cartoon/pop.ogg"
-    );
-    audio.play().catch(() => {});
-  }
-
-  function startEffects() {
-    setConfetti(true);
-    playSound();
-
-    if (navigator.vibrate) {
-      navigator.vibrate([200, 100, 200]);
-    }
-
-    setTimeout(() => setConfetti(false), 2500);
-  }
-
   async function submit(e) {
     e.preventDefault();
 
@@ -95,11 +76,9 @@ export default function Home() {
       localStorage.setItem('djwunschbox_count', String(currentCount + 1));
       setCount(currentCount + 1);
 
-      startEffects();
-
       setStatus({
         type: 'success',
-        text: '🎉 Wunsch erfolgreich!',
+        text: '🎉 Wunsch erfolgreich gesendet!',
         track: data.track
       });
 
@@ -115,27 +94,22 @@ export default function Home() {
   return (
     <main style={styles.page}>
 
-      {confetti && (
-        <div style={styles.confettiWrap}>
-          {Array.from({ length: 50 }).map((_, i) => (
-            <span key={i} style={{
-              ...styles.confetti,
-              left: `${Math.random() * 100}%`,
-              background: i % 2 === 0 ? '#1db954' : '#ffffff',
-              animationDelay: `${Math.random() * 0.5}s`
-            }} />
-          ))}
-        </div>
-      )}
+      <div style={styles.glow}></div>
 
       <section style={styles.card}>
 
-        <h1>🎧 DJ Wunschbox</h1>
-        <p>Tippe deinen Song ein und starte die Party</p>
+        <div style={styles.header}>
+          🎧 <span>DJ DENNIS</span>
+        </div>
+
+        <h1 style={styles.title}>Wunschbox</h1>
+        <p style={styles.subtitle}>
+          Sende deinen Song direkt in die Playlist
+        </p>
 
         <form onSubmit={submit} style={styles.form}>
 
-          <input name="guest" placeholder="Name" value={form.guest} onChange={update} style={styles.input} />
+          <input name="guest" placeholder="Dein Name" value={form.guest} onChange={update} style={styles.input} />
           <input name="artist" placeholder="Interpret" value={form.artist} onChange={update} style={styles.input} />
           <input name="title" placeholder="Songtitel" value={form.title} onChange={update} style={styles.input} />
 
@@ -153,7 +127,7 @@ export default function Home() {
                 ...styles.item,
                 border: selectedTrack?.id === track.id
                   ? '2px solid #1db954'
-                  : '1px solid #333'
+                  : '1px solid #222'
               }}
             >
               {track.image && (
@@ -169,12 +143,6 @@ export default function Home() {
             </div>
           ))}
 
-          {selectedTrack && (
-            <div style={styles.selected}>
-              🎯 {selectedTrack.artist} - {selectedTrack.title}
-            </div>
-          )}
-
           <textarea
             name="message"
             placeholder="Gruß (optional)"
@@ -189,18 +157,22 @@ export default function Home() {
 
         </form>
 
-        <p>{count}/3 Wünsche</p>
+        <p style={styles.counter}>{count}/3 Wünsche</p>
 
         {status && (
           <div style={styles.status}>
             <b>{status.text}</b>
             {status.track && (
-              <div>
+              <div style={{ marginTop: 5 }}>
                 {status.track.artist} - {status.track.title}
               </div>
             )}
           </div>
         )}
+
+        <div style={styles.tip}>
+          💡 Tipp: Unterstütze den DJ mit Trinkgeld ❤️
+        </div>
 
       </section>
     </main>
@@ -210,26 +182,47 @@ export default function Home() {
 const styles = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg,#0b0b0b,#111)',
-    color: '#fff',
+    background: 'radial-gradient(circle at top,#1db95422,#000)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    fontFamily: 'Arial'
+    fontFamily: 'Arial',
+    color: '#fff'
+  },
+  glow: {
+    position: 'absolute',
+    width: 500,
+    height: 500,
+    background: '#1db95433',
+    filter: 'blur(120px)'
   },
   card: {
     width: '92%',
     maxWidth: 520,
-    background: '#111',
-    padding: 22,
-    borderRadius: 18
+    background: '#0d0d0d',
+    padding: 24,
+    borderRadius: 18,
+    border: '1px solid #1db95433',
+    boxShadow: '0 0 40px rgba(0,0,0,0.8)'
+  },
+  header: {
+    color: '#1db954',
+    fontWeight: 'bold'
+  },
+  title: {
+    fontSize: 34,
+    margin: '10px 0 0'
+  },
+  subtitle: {
+    opacity: 0.7,
+    marginBottom: 20
   },
   form: { display: 'grid', gap: 10 },
   input: {
     padding: 12,
     borderRadius: 10,
-    border: '1px solid #333',
-    background: '#000',
+    border: '1px solid #222',
+    background: '#111',
     color: '#fff'
   },
   button: {
@@ -247,7 +240,7 @@ const styles = {
     marginTop: 6,
     borderRadius: 10,
     cursor: 'pointer',
-    alignItems: 'center'
+    background: '#111'
   },
   img: {
     width: 40,
@@ -256,33 +249,25 @@ const styles = {
   },
   loading: {
     padding: 10,
-    background: '#222',
-    borderRadius: 10
-  },
-  selected: {
-    padding: 10,
-    background: '#1db95422',
-    border: '1px solid #1db954',
-    borderRadius: 10
+    background: '#111',
+    borderRadius: 10,
+    fontSize: 13
   },
   status: {
     marginTop: 15,
     padding: 10,
-    background: '#222',
-    borderRadius: 10
+    background: '#111',
+    borderRadius: 10,
+    border: '1px solid #1db95433'
   },
-  confettiWrap: {
-    position: 'fixed',
-    inset: 0,
-    pointerEvents: 'none',
-    overflow: 'hidden'
+  counter: {
+    marginTop: 10,
+    opacity: 0.7
   },
-  confetti: {
-    position: 'absolute',
-    top: -20,
-    width: 8,
-    height: 14,
-    borderRadius: 4,
-    animation: 'fall 2.5s linear forwards'
+  tip: {
+    marginTop: 15,
+    fontSize: 12,
+    opacity: 0.6,
+    textAlign: 'center'
   }
 };
