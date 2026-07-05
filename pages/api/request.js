@@ -1,4 +1,4 @@
-import { addTrackToPlaylist, playlistContainsTrack, publicTrack, searchTrack } from '../../lib/spotify';
+import { addTrackToPlaylist, publicTrack, searchTrack } from '../../lib/spotify';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Nur POST erlaubt.' });
@@ -16,21 +16,16 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Kein passender Song bei Spotify gefunden.' });
     }
 
-    const duplicate = await playlistContainsTrack(track.id);
-
-    if (!duplicate) {
-      await addTrackToPlaylist(track.uri);
-    }
+    await addTrackToPlaylist(track.uri);
 
     return res.status(200).json({
       ok: true,
-      duplicate,
+      duplicate: false,
       track: publicTrack(track)
     });
 
   } catch (err) {
     console.error('API REQUEST ERROR:', err);
-
     return res.status(500).json({
       error: err.message || 'Unbekannter Serverfehler'
     });
