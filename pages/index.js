@@ -94,18 +94,12 @@ export default function Home() {
   return (
     <main style={styles.page}>
 
-      <div style={styles.glow}></div>
-
       <section style={styles.card}>
 
-        <div style={styles.header}>
-          🎧 <span>DJ DENNIS</span>
-        </div>
+        <div style={styles.header}>🎧 DJ DENNIS</div>
 
         <h1 style={styles.title}>Wunschbox</h1>
-        <p style={styles.subtitle}>
-          Sende deinen Song direkt in die Playlist
-        </p>
+        <p style={styles.subtitle}>Sende deinen Song direkt in die Playlist</p>
 
         <form onSubmit={submit} style={styles.form}>
 
@@ -114,25 +108,16 @@ export default function Home() {
           <input name="title" placeholder="Songtitel" value={form.title} onChange={update} style={styles.input} />
 
           {searching && (
-            <div style={styles.loading}>
-              🔎 Spotify sucht...
-            </div>
+            <div style={styles.loading}>🔎 Spotify sucht...</div>
           )}
 
           {suggestions.map(track => (
             <div
               key={track.id}
               onClick={() => chooseTrack(track)}
-              style={{
-                ...styles.item,
-                border: selectedTrack?.id === track.id
-                  ? '2px solid #1db954'
-                  : '1px solid #222'
-              }}
+              style={styles.item}
             >
-              {track.image && (
-                <img src={track.image} style={styles.img} />
-              )}
+              {track.image && <img src={track.image} style={styles.img} />}
 
               <div>
                 <b>{track.title}</b>
@@ -162,16 +147,21 @@ export default function Home() {
         {status && (
           <div style={styles.status}>
             <b>{status.text}</b>
-            {status.track && (
-              <div style={{ marginTop: 5 }}>
-                {status.track.artist} - {status.track.title}
-              </div>
-            )}
           </div>
         )}
 
-        <div style={styles.tip}>
-          💡 Tipp: Unterstütze den DJ mit Trinkgeld ❤️
+        {/* 💰 PAYPAL TRINKGELD */}
+        <div style={styles.tipBox}>
+          <h3>💸 Trinkgeld für den DJ</h3>
+          <p>Wenn dir die Musik gefällt ❤️</p>
+
+          <a
+            href="https://www.paypal.com/donate/?hosted_button_id=DEIN_ID_HIER"
+            target="_blank"
+            style={styles.paypal}
+          >
+            💰 Jetzt Trinkgeld geben
+          </a>
         </div>
 
       </section>
@@ -182,28 +172,19 @@ export default function Home() {
 const styles = {
   page: {
     minHeight: '100vh',
-    background: 'radial-gradient(circle at top,#1db95422,#000)',
+    background: '#0b0b0b',
+    color: '#fff',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    fontFamily: 'Arial',
-    color: '#fff'
-  },
-  glow: {
-    position: 'absolute',
-    width: 500,
-    height: 500,
-    background: '#1db95433',
-    filter: 'blur(120px)'
+    fontFamily: 'Arial'
   },
   card: {
     width: '92%',
     maxWidth: 520,
-    background: '#0d0d0d',
-    padding: 24,
-    borderRadius: 18,
-    border: '1px solid #1db95433',
-    boxShadow: '0 0 40px rgba(0,0,0,0.8)'
+    background: '#111',
+    padding: 22,
+    borderRadius: 18
   },
   header: {
     color: '#1db954',
@@ -221,8 +202,8 @@ const styles = {
   input: {
     padding: 12,
     borderRadius: 10,
-    border: '1px solid #222',
-    background: '#111',
+    border: '1px solid #333',
+    background: '#000',
     color: '#fff'
   },
   button: {
@@ -250,24 +231,34 @@ const styles = {
   loading: {
     padding: 10,
     background: '#111',
-    borderRadius: 10,
-    fontSize: 13
+    borderRadius: 10
   },
   status: {
     marginTop: 15,
     padding: 10,
     background: '#111',
-    borderRadius: 10,
-    border: '1px solid #1db95433'
+    borderRadius: 10
   },
   counter: {
     marginTop: 10,
     opacity: 0.7
   },
-  tip: {
-    marginTop: 15,
-    fontSize: 12,
-    opacity: 0.6,
+  tipBox: {
+    marginTop: 25,
+    padding: 15,
+    borderRadius: 12,
+    background: '#000',
+    border: '1px solid #1db95433',
     textAlign: 'center'
+  },
+  paypal: {
+    display: 'inline-block',
+    marginTop: 10,
+    padding: '12px 16px',
+    background: '#1db954',
+    color: '#000',
+    fontWeight: 'bold',
+    borderRadius: 10,
+    textDecoration: 'none'
   }
 };
