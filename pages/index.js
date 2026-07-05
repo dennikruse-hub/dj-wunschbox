@@ -38,7 +38,7 @@ export default function Home() {
 
       setStatus({
         type: 'success',
-        text: data.duplicate ? 'Der Song ist schon in der Wunschliste.' : 'Wunsch erfolgreich!',
+        text: 'Wunsch erfolgreich!',
         track: data.track
       });
 
@@ -57,33 +57,33 @@ export default function Home() {
             <div style={styles.dj}>DJ DENNIS</div>
             <div style={styles.title}>WUNSCHBOX</div>
           </div>
-          <div style={styles.spotify}>Spotify<br />verbunden</div>
+          <div style={styles.spotify}>● Spotify<br />verbunden</div>
         </header>
 
         <div style={styles.infoBox}>
           <div style={styles.infoIcon}>🎵</div>
-          <p>Scanne den QR-Code oder sende deinen Musikwunsch und ich packe ihn in meine Spotify-Wunschliste.</p>
+          <p>Scanne den QR-Code oder sende deinen Musikwunsch direkt an DJ Dennis.</p>
         </div>
 
         <form onSubmit={submit} style={styles.form}>
-          <Field icon="👤" label="Dein Name (optional)">
+          <InputCard icon="👤" label="Dein Name" optional>
             <input style={styles.input} name="guest" value={form.guest} onChange={update} placeholder="z. B. Dennis" />
-          </Field>
+          </InputCard>
 
-          <Field icon="🎤" label="Interpret">
+          <InputCard icon="🎤" label="Interpret">
             <input style={styles.input} name="artist" value={form.artist} onChange={update} placeholder="z. B. Roland Kaiser" />
-          </Field>
+          </InputCard>
 
-          <Field icon="🎵" label="Songtitel">
+          <InputCard icon="🎵" label="Songtitel">
             <input style={styles.input} name="title" value={form.title} onChange={update} placeholder="z. B. Warum hast du nicht nein gesagt" />
-          </Field>
+          </InputCard>
 
-          <Field icon="💬" label="Gruß optional">
+          <InputCard icon="💬" label="Gruß" optional>
             <textarea style={styles.textarea} name="message" value={form.message} onChange={update} placeholder="Dein Gruß..." />
-          </Field>
+          </InputCard>
 
           <button style={styles.button} disabled={status?.type === 'loading'}>
-            {status?.type === 'loading' ? 'Bitte warten ...' : '🎵 MUSIKWUNSCH SENDEN'}
+            {status?.type === 'loading' ? '🔎 Suche Song ...' : '🎵 MUSIKWUNSCH SENDEN'}
           </button>
         </form>
 
@@ -107,7 +107,7 @@ export default function Home() {
                 <div>
                   <h3>{status.track.artist}</h3>
                   <p>{status.track.title}</p>
-                  <small>✅ Zur Playlist hinzugefügt</small>
+                  <small>✅ Zur Spotify-Playlist hinzugefügt</small>
                 </div>
               </div>
             )}
@@ -120,11 +120,16 @@ export default function Home() {
   );
 }
 
-function Field({ icon, label, children }) {
+function InputCard({ icon, label, optional, children }) {
   return (
     <label style={styles.field}>
-      <div style={styles.label}><span>{icon}</span>{label}</div>
-      {children}
+      <div style={styles.iconCircle}>{icon}</div>
+      <div style={styles.fieldContent}>
+        <div style={styles.label}>
+          {label} {optional && <span style={styles.optional}>(optional)</span>}
+        </div>
+        {children}
+      </div>
     </label>
   );
 }
@@ -142,34 +147,17 @@ const styles = {
   },
   app: {
     width: '100%',
-    maxWidth: 520,
+    maxWidth: 540,
     borderRadius: 30,
     padding: 22,
-    background: 'rgba(3, 10, 7, 0.92)',
+    background: 'rgba(3, 10, 7, 0.94)',
     border: '1px solid rgba(29,185,84,.45)',
     boxShadow: '0 0 60px rgba(29,185,84,.25), 0 30px 90px #000'
   },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    marginBottom: 24
-  },
-  logo: {
-    fontSize: 48,
-    filter: 'drop-shadow(0 0 15px #1db954)'
-  },
-  dj: {
-    fontSize: 30,
-    fontWeight: 900,
-    letterSpacing: 1
-  },
-  title: {
-    color: '#1db954',
-    fontSize: 25,
-    fontWeight: 900,
-    letterSpacing: 1
-  },
+  header: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 },
+  logo: { fontSize: 52, filter: 'drop-shadow(0 0 15px #1db954)' },
+  dj: { fontSize: 30, fontWeight: 900, letterSpacing: 1 },
+  title: { color: '#1db954', fontSize: 25, fontWeight: 900, letterSpacing: 1 },
   spotify: {
     marginLeft: 'auto',
     border: '1px solid #1db954',
@@ -187,31 +175,34 @@ const styles = {
     border: '1px solid rgba(29,185,84,.35)',
     borderRadius: 22,
     padding: 18,
-    marginBottom: 18,
+    marginBottom: 16,
     lineHeight: 1.5
   },
-  infoIcon: {
-    fontSize: 36,
-    color: '#1db954'
-  },
-  form: {
-    display: 'grid',
-    gap: 12
-  },
+  infoIcon: { fontSize: 40 },
+  form: { display: 'grid', gap: 12 },
   field: {
-    display: 'grid',
-    gap: 9,
+    display: 'flex',
+    gap: 14,
     background: 'rgba(255,255,255,.035)',
     border: '1px solid rgba(29,185,84,.35)',
     borderRadius: 18,
     padding: 14
   },
-  label: {
+  iconCircle: {
+    width: 44,
+    height: 44,
+    minWidth: 44,
+    borderRadius: 999,
+    background: 'rgba(29,185,84,.18)',
     display: 'flex',
-    gap: 10,
     alignItems: 'center',
-    fontWeight: 800
+    justifyContent: 'center',
+    fontSize: 24,
+    boxShadow: '0 0 18px rgba(29,185,84,.25)'
   },
+  fieldContent: { flex: 1, display: 'grid', gap: 8 },
+  label: { fontWeight: 900 },
+  optional: { color: '#aaa', fontWeight: 500 },
   input: {
     background: '#050505',
     color: 'white',
@@ -219,7 +210,8 @@ const styles = {
     borderRadius: 14,
     padding: 15,
     fontSize: 16,
-    outline: 'none'
+    outline: 'none',
+    width: '100%'
   },
   textarea: {
     background: '#050505',
@@ -229,7 +221,8 @@ const styles = {
     padding: 15,
     fontSize: 16,
     minHeight: 95,
-    outline: 'none'
+    outline: 'none',
+    width: '100%'
   },
   button: {
     marginTop: 10,
@@ -253,39 +246,11 @@ const styles = {
     alignItems: 'center',
     color: '#ddd'
   },
-  status: {
-    marginTop: 18,
-    padding: 18,
-    borderRadius: 20
-  },
-  success: {
-    background: 'linear-gradient(135deg,#0d3b1d,#092413)',
-    border: '1px solid #1db954'
-  },
-  error: {
-    background: '#3b1010',
-    border: '1px solid #ff5555'
-  },
-  loading: {
-    background: '#171717',
-    border: '1px solid #555'
-  },
-  track: {
-    marginTop: 14,
-    display: 'flex',
-    gap: 14,
-    alignItems: 'center'
-  },
-  cover: {
-    width: 95,
-    height: 95,
-    borderRadius: 14,
-    objectFit: 'cover'
-  },
-  footer: {
-    textAlign: 'center',
-    marginTop: 22,
-    color: '#aaa',
-    fontSize: 14
-  }
+  status: { marginTop: 18, padding: 18, borderRadius: 20 },
+  success: { background: 'linear-gradient(135deg,#0d3b1d,#092413)', border: '1px solid #1db954' },
+  error: { background: '#3b1010', border: '1px solid #ff5555' },
+  loading: { background: '#171717', border: '1px solid #555' },
+  track: { marginTop: 14, display: 'flex', gap: 14, alignItems: 'center' },
+  cover: { width: 95, height: 95, borderRadius: 14, objectFit: 'cover' },
+  footer: { textAlign: 'center', marginTop: 22, color: '#aaa', fontSize: 14 }
 };
