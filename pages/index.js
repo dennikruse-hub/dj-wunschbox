@@ -31,7 +31,7 @@ export default function Home() {
       } finally {
         setSearching(false);
       }
-    }, 400);
+    }, 350);
 
     return () => clearTimeout(timer);
   }, [form.artist, form.title, selectedTrack]);
@@ -57,7 +57,7 @@ export default function Home() {
     const currentCount = Number(localStorage.getItem('djwunschbox_count') || '0');
 
     if (currentCount >= 3) {
-      setStatus({ type: 'error', text: 'Du hast bereits 3 Wünsche gesendet.' });
+      setStatus({ type: 'error', text: 'Limit erreicht (3 Wünsche)' });
       return;
     }
 
@@ -78,7 +78,7 @@ export default function Home() {
 
       setStatus({
         type: 'success',
-        text: 'Wunsch erfolgreich gesendet!',
+        text: 'Wunsch gespeichert 🎉',
         track: data.track
       });
 
@@ -96,49 +96,51 @@ export default function Home() {
       <section style={styles.card}>
 
         <h1>🎧 DJ Wunschbox</h1>
-        <p>Gib deinen Songwunsch ein</p>
+        <p>Tippe deinen Song ein und wähle aus Spotify</p>
 
         <form onSubmit={submit} style={styles.form}>
 
-          <input name="guest" placeholder="Dein Name" value={form.guest} onChange={update} style={styles.input} />
+          <input name="guest" placeholder="Name" value={form.guest} onChange={update} style={styles.input} />
           <input name="artist" placeholder="Interpret" value={form.artist} onChange={update} style={styles.input} />
           <input name="title" placeholder="Songtitel" value={form.title} onChange={update} style={styles.input} />
 
-          {/* SEARCH */}
           {searching && (
             <div style={styles.loading}>
               🔎 Spotify sucht...
             </div>
           )}
 
-          {suggestions.map(track => (
-            <div
-              key={track.id}
-              onClick={() => chooseTrack(track)}
-              style={{
-                ...styles.item,
-                border: selectedTrack?.id === track.id
-                  ? '2px solid #1db954'
-                  : '1px solid #333'
-              }}
-            >
-              {track.image && (
-                <img src={track.image} style={styles.img} />
-              )}
+          {suggestions.map(track => {
+            const active = selectedTrack?.id === track.id;
 
-              <div>
-                <b>{track.title}</b>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>
-                  {track.artist}
+            return (
+              <div
+                key={track.id}
+                onClick={() => chooseTrack(track)}
+                style={{
+                  ...styles.item,
+                  border: active ? '2px solid #1db954' : '1px solid #333',
+                  transform: active ? 'scale(1.02)' : 'scale(1)',
+                  background: active ? 'rgba(29,185,84,0.15)' : '#111'
+                }}
+              >
+                {track.image && (
+                  <img src={track.image} style={styles.img} />
+                )}
+
+                <div>
+                  <b>{track.title}</b>
+                  <div style={{ fontSize: 12, opacity: 0.7 }}>
+                    {track.artist}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {selectedTrack && (
             <div style={styles.selected}>
-              <b>Ausgewählt:</b>
-              <div>{selectedTrack.artist} - {selectedTrack.title}</div>
+              🎯 Ausgewählt: {selectedTrack.artist} - {selectedTrack.title}
             </div>
           )}
 
@@ -177,23 +179,22 @@ export default function Home() {
 const styles = {
   page: {
     minHeight: '100vh',
-    background: '#0b0b0b',
+    background: 'linear-gradient(135deg,#0b0b0b,#111)',
     color: '#fff',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    fontFamily: 'Arial'
   },
   card: {
-    width: '90%',
-    maxWidth: 500,
+    width: '92%',
+    maxWidth: 520,
     background: '#111',
-    padding: 20,
-    borderRadius: 16
+    padding: 22,
+    borderRadius: 18,
+    boxShadow: '0 20px 60px rgba(0,0,0,0.6)'
   },
-  form: {
-    display: 'grid',
-    gap: 10
-  },
+  form: { display: 'grid', gap: 10 },
   input: {
     padding: 12,
     borderRadius: 10,
@@ -216,7 +217,8 @@ const styles = {
     marginTop: 6,
     borderRadius: 10,
     cursor: 'pointer',
-    alignItems: 'center'
+    alignItems: 'center',
+    transition: 'all 0.2s'
   },
   img: {
     width: 40,
@@ -226,8 +228,7 @@ const styles = {
   loading: {
     padding: 10,
     background: '#222',
-    borderRadius: 10,
-    fontSize: 13
+    borderRadius: 10
   },
   selected: {
     padding: 10,
