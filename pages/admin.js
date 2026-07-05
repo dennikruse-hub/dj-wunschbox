@@ -1,33 +1,30 @@
 import { useEffect, useState } from 'react';
 
-function NowPlaying({ track }) {
-  if (!track) return null;
-
-  return (
-    <div style={styles.now}>
-      🎧 <b>JETZT LÄUFT</b>
-
-      <div style={styles.nowBox}>
-        {track.image && <img src={track.image} style={styles.img} />}
-
-        <div>
-          <h3 style={{ margin: 0 }}>{track.title}</h3>
-          <p style={{ margin: 0 }}>{track.artist}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Admin() {
   const [tracks, setTracks] = useState([]);
+  const [lastId, setLastId] = useState(null);
+  const [popup, setPopup] = useState(null);
 
   async function load() {
     try {
       const res = await fetch('/api/list');
       const data = await res.json();
 
-      setTracks(data.tracks || []);
+      const newTracks = data.tracks || [];
+
+      // 🔥 CHECK OB NEUER WUNSCH DA IST
+      if (newTracks.length > 0) {
+        if (lastId && newTracks[0].id !== lastId) {
+          setPopup(newTracks[0]);
+
+          // Auto close popup nach 4 Sekunden
+          setTimeout(() => setPopup(null), 4000);
+        }
+
+        setLastId(newTracks[0].id);
+      }
+
+      setTracks(newTracks);
     } catch (e) {
       console.log(e);
     }
@@ -35,12 +32,9 @@ export default function Admin() {
 
   useEffect(() => {
     load();
-
-    // 🔥 LIVE MODE (kein Flicker, nur smooth refresh)
     const interval = setInterval(load, 2500);
-
     return () => clearInterval(interval);
-  }, []);
+  }, [lastId]);
 
   async function removeTrack(id) {
     await fetch('/api/remove?id=' + id);
@@ -57,38 +51,43 @@ export default function Admin() {
 
   return (
     <main style={styles.page}>
-      <h1>🎧 DJ FINAL MODE</h1>
 
-      {/* NOW PLAYING */}
-      <NowPlaying track={nowPlaying} />
+      <h1>🎧 DJ CONTROL</h1>
 
-      {/* QUEUE */}
-      <h3 style={{ marginTop: 20 }}>📊 Warteschlange</h3>
+      {/* 🔥 POPUP */}
+      {popup && (
+        <div style={styles.popup}>
+          🔔 NEUER WUNSCH!
 
-      {queue.length === 0 && (
-        <p>Keine weiteren Wünsche</p>
+          <div style={styles.popupBox}>
+            <b>{popup.title}</b>
+            <div>{popup.artist}</div>
+          </div>
+        </div>
       )}
 
-      {queue.map((t) => (
+      {/* NOW PLAYING */}
+      {nowPlaying && (
+        <div style={styles.now}>
+          🎧 Jetzt: {nowPlaying.title} - {nowPlaying.artist}
+        </div>
+      )}
+
+      {/* QUEUE */}
+      <h3>Queue</h3>
+
+      {queue.map(t => (
         <div key={t.id} style={styles.card}>
-
-          {t.image && <img src={t.image} style={styles.imgSmall} />}
-
-          <div style={{ flex: 1 }}>
+          <div>
             <b>{t.title}</b>
-            <div style={{ opacity: 0.7 }}>{t.artist}</div>
+            <div>{t.artist}</div>
           </div>
 
-          <button onClick={() => markPlayed(t.id)} style={styles.played}>
-            ✔
-          </button>
-
-          <button onClick={() => removeTrack(t.id)} style={styles.delete}>
-            🗑
-          </button>
-
+          <button onClick={() => markPlayed(t.id)}>✔</button>
+          <button onClick={() => removeTrack(t.id)}>🗑</button>
         </div>
       ))}
+
     </main>
   );
 }
@@ -103,55 +102,36 @@ const styles = {
   },
 
   now: {
-    padding: 15,
+    padding: 10,
     border: '1px solid #1db954',
-    borderRadius: 12,
-    background: '#111'
-  },
-
-  nowBox: {
-    display: 'flex',
-    gap: 10,
-    alignItems: 'center',
-    marginTop: 10
+    borderRadius: 10,
+    marginBottom: 10
   },
 
   card: {
     display: 'flex',
-    gap: 10,
-    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 10,
     background: '#111',
     borderRadius: 10,
-    marginTop: 10
+    marginTop: 8
   },
 
-  img: {
-    width: 60,
-    height: 60,
-    borderRadius: 8
-  },
-
-  imgSmall: {
-    width: 45,
-    height: 45,
-    borderRadius: 6
-  },
-
-  played: {
+  popup: {
+    position: 'fixed',
+    top: 20,
+    right: 20,
     background: '#1db954',
-    border: 0,
-    padding: 8,
-    borderRadius: 6,
-    cursor: 'pointer'
+    color: '#000',
+    padding: 15,
+    borderRadius: 12,
+    fontWeight: 'bold',
+    boxShadow: '0 0 30px rgba(0,0,0,0.5)',
+    zIndex: 9999
   },
 
-  delete: {
-    background: '#ff4444',
-    border: 0,
-    padding: 8,
-    borderRadius: 6,
-    cursor: 'pointer',
-    color: '#fff'
+  popupBox: {
+    marginTop: 5,
+    fontSize: 13
   }
 };
