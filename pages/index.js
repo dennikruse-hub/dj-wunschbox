@@ -117,7 +117,9 @@ export default function Home() {
               onClick={() => chooseTrack(track)}
               style={styles.item}
             >
-              {track.image && <img src={track.image} style={styles.img} />}
+              {track.image && (
+                <img src={track.image} style={styles.img} />
+              )}
 
               <div>
                 <b>{track.title}</b>
@@ -152,11 +154,11 @@ export default function Home() {
 
         {/* 💰 PAYPAL TRINKGELD */}
         <div style={styles.tipBox}>
-          <h3>💸 Trinkgeld für den DJ</h3>
+          <h3>💸 Trinkgeld für DJ Dennis</h3>
           <p>Wenn dir die Musik gefällt ❤️</p>
 
           <a
-            href="https://www.paypal.com/donate/?hosted_button_id=DEIN_ID_HIER"
+            href="https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG"
             target="_blank"
             style={styles.paypal}
           >
