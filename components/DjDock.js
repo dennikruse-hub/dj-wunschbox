@@ -6,14 +6,14 @@ export default function DjDock() {
   return (
     <>
       {/* BUTTON */}
-      <div style={styles.fab} onClick={() => setOpen(!open)}>
+      <div style={styles.button} onClick={() => setOpen(!open)}>
         🎧 DJ
       </div>
 
       {/* PANEL */}
       {open && (
         <div style={styles.panel}>
-          <div style={styles.title}>🎛 DJ CONTROL</div>
+          <div style={styles.title}>🎛 DJ CONTROL PANEL</div>
 
           <button style={styles.btn} onClick={() => window.location.href = '/'}>
             🎵 Wunschbox
@@ -26,7 +26,9 @@ export default function DjDock() {
           <button
             style={styles.btn}
             onClick={() =>
-              window.open('https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG')
+              window.open(
+                'https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG'
+              )
             }
           >
             💸 PayPal
@@ -38,7 +40,7 @@ export default function DjDock() {
 }
 
 const styles = {
-  fab: {
+  button: {
     position: 'fixed',
     bottom: 20,
     right: 20,
@@ -59,7 +61,7 @@ const styles = {
     position: 'fixed',
     bottom: 90,
     right: 20,
-    width: 200,
+    width: 220,
     background: '#111',
     border: '1px solid #1db954',
     borderRadius: 12,
