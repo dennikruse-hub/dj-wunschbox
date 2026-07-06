@@ -6,6 +6,10 @@ export default function PremiumHeader() {
           0%,100% { transform: scaleY(.35); }
           50% { transform: scaleY(1); }
         }
+        @keyframes ringPulse {
+          0%,100% { box-shadow: 0 0 22px #1db954, 0 0 45px rgba(124,58,237,.55); }
+          50% { box-shadow: 0 0 38px #35ff75, 0 0 70px rgba(124,58,237,.8); }
+        }
       `}</style>
 
       <div style={styles.top}>
@@ -19,9 +23,7 @@ export default function PremiumHeader() {
         <div style={styles.text}>
           <div style={styles.dj}>DJ DENNIS</div>
           <h1 style={styles.title}>Wunschbox</h1>
-          <p style={styles.sub}>
-            Wünsch dir deinen Song direkt in die Spotify-Playlist.
-          </p>
+          <p style={styles.sub}>Wünsch dir deinen Song direkt in die Spotify-Playlist.</p>
 
           <div style={styles.eq}>
             {[1,2,3,4,5,6,7].map(i => (
@@ -40,42 +42,43 @@ const styles = {
   top: {
     display: 'flex',
     justifyContent: 'space-between',
-    marginBottom: 12
+    marginBottom: 10
   },
   badge: {
-    padding: '7px 12px',
+    padding: '6px 11px',
     borderRadius: 12,
     background: 'rgba(29,185,84,.18)',
     border: '1px solid rgba(29,185,84,.7)',
     color: '#7dffad',
     fontWeight: 900,
-    fontSize: 13
+    fontSize: 12
   },
   spotify: {
-    padding: '7px 12px',
+    padding: '6px 11px',
     borderRadius: 12,
     background: 'rgba(29,185,84,.12)',
     border: '1px solid rgba(29,185,84,.45)',
     color: '#7dffad',
     fontWeight: 900,
-    fontSize: 13
+    fontSize: 12
   },
   header: {
     display: 'flex',
-    gap: 14,
+    gap: 12,
     alignItems: 'center'
   },
   logo: {
-    width: 82,
-    height: 82,
-    minWidth: 82,
+    width: 74,
+    height: 74,
+    minWidth: 74,
     borderRadius: '50%',
     background: 'linear-gradient(135deg,#1db954,#7c3aed)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 38,
-    boxShadow: '0 0 30px #1db954, 0 0 45px rgba(124,58,237,.65)'
+    fontSize: 34,
+    animation: 'ringPulse 2.4s infinite',
+    border: '1px solid rgba(255,255,255,.4)'
   },
   text: {
     flex: 1
@@ -84,30 +87,30 @@ const styles = {
     color: '#1db954',
     fontWeight: 900,
     letterSpacing: 4,
-    fontSize: 14
+    fontSize: 13
   },
   title: {
-    margin: '2px 0',
-    fontSize: 38,
+    margin: '1px 0',
+    fontSize: 34,
     lineHeight: 1,
     fontWeight: 900
   },
   sub: {
     margin: 0,
     opacity: .78,
-    lineHeight: 1.35,
-    fontSize: 15
+    lineHeight: 1.25,
+    fontSize: 14
   },
   eq: {
     display: 'flex',
     gap: 4,
-    height: 26,
+    height: 23,
     alignItems: 'end',
-    marginTop: 8
+    marginTop: 6
   },
   bar: {
     width: 5,
-    height: 24,
+    height: 22,
     borderRadius: 10,
     background: 'linear-gradient(#35ff75,#7c3aed)',
     transformOrigin: 'bottom',
@@ -116,7 +119,7 @@ const styles = {
   guests: {
     textAlign: 'center',
     fontWeight: 900,
-    margin: '18px 0 14px',
-    fontSize: 16
+    margin: '14px 0 11px',
+    fontSize: 15
   }
 };
