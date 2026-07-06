@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PremiumHeader from '../components/PremiumHeader';
 import RequestForm from '../components/RequestForm';
 import BackgroundGlow from '../components/BackgroundGlow';
-import PayPalSupport from '../components/PayPalSupport';
+import GuestPanel from '../components/GuestPanel';
 
 export default function Home() {
   const [form, setForm] = useState({ artist: '', title: '', guest: '', message: '' });
@@ -126,7 +126,7 @@ export default function Home() {
           </div>
         )}
 
-        <PayPalSupport />
+        <GuestPanel />
       </section>
     </main>
   );
