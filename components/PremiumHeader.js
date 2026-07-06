@@ -3,130 +3,120 @@ export default function PremiumHeader() {
     <>
       <style jsx global>{`
         @keyframes eq {
-          0%,100% { transform: scaleY(.45); }
+          0%,100% { transform: scaleY(.35); }
           50% { transform: scaleY(1); }
-        }
-        @keyframes pulseLive {
-          0%,100% { opacity: .6; box-shadow: 0 0 8px #1db954; }
-          50% { opacity: 1; box-shadow: 0 0 20px #1db954; }
         }
       `}</style>
 
-      <div style={styles.topRow}>
-        <div style={styles.liveBadge}>
-          <span style={styles.liveDot}></span>
-          LIVE PARTY MODE
-        </div>
-
-        <div style={styles.spotifyBadge}>Spotify verbunden</div>
+      <div style={styles.top}>
+        <div style={styles.badge}>● LIVE</div>
+        <div style={styles.spotify}>Spotify</div>
       </div>
 
       <header style={styles.header}>
-        <div style={styles.logoCircle}>🎧</div>
+        <div style={styles.logo}>🎧</div>
 
-        <div style={styles.textBox}>
+        <div style={styles.text}>
           <div style={styles.dj}>DJ DENNIS</div>
           <h1 style={styles.title}>Wunschbox</h1>
-          <p style={styles.subtitle}>
+          <p style={styles.sub}>
             Wünsch dir deinen Song direkt in die Spotify-Playlist.
           </p>
 
-          <div style={styles.equalizer}>
+          <div style={styles.eq}>
             {[1,2,3,4,5,6,7].map(i => (
-              <span key={i} style={{ ...styles.bar, animationDelay: `${i * .12}s` }}></span>
+              <span key={i} style={{ ...styles.bar, animationDelay: `${i * .1}s` }} />
             ))}
           </div>
         </div>
       </header>
+
+      <div style={styles.guests}>👥 128 GÄSTE ONLINE</div>
     </>
   );
 }
 
 const styles = {
-  topRow: {
+  top: {
     display: 'flex',
     justifyContent: 'space-between',
-    gap: 10,
-    alignItems: 'center',
-    marginBottom: 18
+    marginBottom: 12
   },
-  liveBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '8px 12px',
-    borderRadius: 999,
+  badge: {
+    padding: '7px 12px',
+    borderRadius: 12,
     background: 'rgba(29,185,84,.18)',
-    border: '1px solid rgba(29,185,84,.5)',
+    border: '1px solid rgba(29,185,84,.7)',
     color: '#7dffad',
     fontWeight: 900,
-    fontSize: 12
+    fontSize: 13
   },
-  liveDot: {
-    width: 9,
-    height: 9,
-    borderRadius: '50%',
-    background: '#1db954',
-    animation: 'pulseLive 1.4s infinite'
-  },
-  spotifyBadge: {
-    padding: '8px 12px',
-    borderRadius: 999,
-    background: 'rgba(255,255,255,.08)',
-    border: '1px solid rgba(255,255,255,.14)',
-    color: '#dfffe8',
-    fontWeight: 800,
-    fontSize: 12
+  spotify: {
+    padding: '7px 12px',
+    borderRadius: 12,
+    background: 'rgba(29,185,84,.12)',
+    border: '1px solid rgba(29,185,84,.45)',
+    color: '#7dffad',
+    fontWeight: 900,
+    fontSize: 13
   },
   header: {
     display: 'flex',
-    gap: 16,
-    alignItems: 'center',
-    marginBottom: 24
+    gap: 14,
+    alignItems: 'center'
   },
-  logoCircle: {
-    width: 74,
-    height: 74,
-    minWidth: 74,
+  logo: {
+    width: 82,
+    height: 82,
+    minWidth: 82,
     borderRadius: '50%',
     background: 'linear-gradient(135deg,#1db954,#7c3aed)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 36,
-    boxShadow: '0 0 45px rgba(29,185,84,.55)'
+    fontSize: 38,
+    boxShadow: '0 0 30px #1db954, 0 0 45px rgba(124,58,237,.65)'
   },
-  textBox: { flex: 1 },
+  text: {
+    flex: 1
+  },
   dj: {
     color: '#1db954',
     fontWeight: 900,
-    letterSpacing: 2,
+    letterSpacing: 4,
     fontSize: 14
   },
   title: {
     margin: '2px 0',
-    fontSize: 44,
-    lineHeight: 1
+    fontSize: 38,
+    lineHeight: 1,
+    fontWeight: 900
   },
-  subtitle: {
+  sub: {
     margin: 0,
-    opacity: .72,
-    lineHeight: 1.4
+    opacity: .78,
+    lineHeight: 1.35,
+    fontSize: 15
   },
-  equalizer: {
+  eq: {
     display: 'flex',
-    gap: 5,
+    gap: 4,
+    height: 26,
     alignItems: 'end',
-    height: 32,
-    marginTop: 12
+    marginTop: 8
   },
   bar: {
     width: 5,
-    height: 28,
-    borderRadius: 999,
-    background: 'linear-gradient(#7dffad,#1db954)',
+    height: 24,
+    borderRadius: 10,
+    background: 'linear-gradient(#35ff75,#7c3aed)',
     transformOrigin: 'bottom',
-    animation: 'eq .9s ease-in-out infinite',
-    boxShadow: '0 0 12px rgba(29,185,84,.8)'
+    animation: 'eq .8s infinite ease-in-out'
+  },
+  guests: {
+    textAlign: 'center',
+    fontWeight: 900,
+    margin: '18px 0 14px',
+    fontSize: 16
   }
 };
