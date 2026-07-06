@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PremiumHeader from '../components/PremiumHeader';
 import PayPalSupport from '../components/PayPalSupport';
 import RequestForm from '../components/RequestForm';
+import BackgroundGlow from '../components/BackgroundGlow';
 
 export default function Home() {
   const [form, setForm] = useState({ artist: '', title: '', guest: '', message: '' });
@@ -92,8 +93,7 @@ export default function Home() {
 
   return (
     <main style={styles.page}>
-      <div style={styles.glowOne}></div>
-      <div style={styles.glowTwo}></div>
+      <BackgroundGlow />
 
       <section style={styles.app}>
         <PremiumHeader />
@@ -145,26 +145,6 @@ const styles = {
     padding: 18,
     position: 'relative',
     overflow: 'auto'
-  },
-  glowOne: {
-    position: 'fixed',
-    top: -120,
-    left: -120,
-    width: 360,
-    height: 360,
-    background: '#1db95455',
-    filter: 'blur(90px)',
-    borderRadius: '50%'
-  },
-  glowTwo: {
-    position: 'fixed',
-    right: -140,
-    bottom: -120,
-    width: 420,
-    height: 420,
-    background: '#7c3aed66',
-    filter: 'blur(100px)',
-    borderRadius: '50%'
   },
   app: {
     width: '100%',
