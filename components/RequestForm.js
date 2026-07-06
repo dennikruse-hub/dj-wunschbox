@@ -8,69 +8,57 @@ export default function RequestForm({
   chooseTrack,
   selectedTrack
 }) {
+  const visibleTracks = selectedTrack ? [selectedTrack] : suggestions.slice(0, 1);
+
   return (
     <form onSubmit={submit} style={styles.form}>
-      <Field label="👤 Dein Name">
+      <Field icon="👤" label="Dein Name">
         <input name="guest" value={form.guest} onChange={update} style={styles.input} placeholder="z. B. Dennis" />
       </Field>
 
-      <Field label="🎤 Interpret">
+      <Field icon="🎙️" label="Interpret">
         <input name="artist" value={form.artist} onChange={update} style={styles.input} placeholder="z. B. Roland Kaiser" />
       </Field>
 
-      <Field label="🎵 Songtitel">
+      <Field icon="🎵" label="Songtitel">
         <input name="title" value={form.title} onChange={update} style={styles.input} placeholder="z. B. Warum hast du nicht nein gesagt" />
       </Field>
 
-      {searching && <div style={styles.searching}>🔎 Spotify sucht passende Songs...</div>}
+      <div style={styles.suggestionHead}>
+        <span>🎧 SPOTIFY VORSCHLÄGE</span>
+        <span style={styles.searchText}>{searching ? 'Suche läuft...' : ''}</span>
+      </div>
 
-      {suggestions.length > 0 && (
-        <div style={styles.suggestionBox}>
-          {suggestions.map(track => (
-            <button type="button" key={track.id} onClick={() => chooseTrack(track)} style={styles.song}>
-              {track.image && <img src={track.image} style={styles.cover} />}
-              <div style={{ textAlign: 'left' }}>
-                <b>{track.title}</b>
-                <div style={styles.artist}>{track.artist}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {selectedTrack && (
-        <div style={styles.selected}>
-          {selectedTrack.image && <img src={selectedTrack.image} style={styles.selectedCover} />}
-          <div>
-            <div style={styles.selectedLabel}>✅ Spotify gefunden</div>
-            <b>{selectedTrack.title}</b>
-            <div style={styles.artist}>{selectedTrack.artist}</div>
+      {visibleTracks.map(track => (
+        <button type="button" key={track.id} onClick={() => chooseTrack(track)} style={styles.song}>
+          {track.image && <img src={track.image} style={styles.cover} />}
+          <div style={{ flex: 1, textAlign: 'left' }}>
+            <b>{track.title}</b>
+            <div style={styles.artist}>{track.artist}</div>
           </div>
-        </div>
-      )}
-
-      <Field label="💬 Gruß optional">
-        <textarea
-          name="message"
-          value={form.message}
-          onChange={update}
-          style={styles.textarea}
-          placeholder="Gruß an DJ Dennis oder das Geburtstagskind..."
-        />
-      </Field>
+          <div style={styles.play}>▶</div>
+        </button>
+      ))}
 
       <button style={styles.button} disabled={status?.type === 'loading'}>
-        {status?.type === 'loading' ? 'Bitte warten...' : '🎵 WUNSCH SENDEN'}
+        <span style={styles.paper}>✈</span>
+        <span>
+          {status?.type === 'loading' ? 'BITTE WARTEN...' : 'WUNSCH SENDEN'}
+          <small style={styles.small}>Dein Song geht direkt an DJ Dennis</small>
+        </span>
       </button>
     </form>
   );
 }
 
-function Field({ label, children }) {
+function Field({ icon, label, children }) {
   return (
     <label style={styles.field}>
-      <div style={styles.label}>{label}</div>
-      {children}
+      <div style={styles.icon}>{icon}</div>
+      <div style={styles.fieldContent}>
+        <div style={styles.label}>{label}</div>
+        {children}
+      </div>
     </label>
   );
 }
@@ -78,109 +66,119 @@ function Field({ label, children }) {
 const styles = {
   form: {
     display: 'grid',
-    gap: 14
+    gap: 9
   },
   field: {
-    display: 'grid',
-    gap: 8,
-    background: 'rgba(0,0,0,.28)',
-    border: '1px solid rgba(255,255,255,.12)',
-    borderRadius: 20,
-    padding: 14,
-    boxShadow: 'inset 0 0 25px rgba(255,255,255,.025)'
+    display: 'flex',
+    gap: 10,
+    alignItems: 'center',
+    padding: 9,
+    borderRadius: 17,
+    background: 'rgba(0,25,45,.48)',
+    border: '1px solid rgba(0,229,255,.35)',
+    boxShadow: 'inset 0 0 22px rgba(0,229,255,.08)'
+  },
+  icon: {
+    width: 48,
+    height: 48,
+    minWidth: 48,
+    borderRadius: 12,
+    background: 'linear-gradient(135deg,#0ea5e9,#7c3aed)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 23,
+    boxShadow: '0 0 18px rgba(0,229,255,.45)'
+  },
+  fieldContent: {
+    flex: 1
   },
   label: {
     fontWeight: 900,
     fontSize: 14,
-    color: '#eafff1'
+    marginBottom: 5
   },
   input: {
     width: '100%',
-    padding: 14,
-    borderRadius: 15,
-    border: '1px solid rgba(255,255,255,.16)',
-    background: 'rgba(0,0,0,.6)',
+    height: 35,
+    borderRadius: 10,
+    border: '1px solid rgba(255,255,255,.25)',
+    background: 'rgba(0,0,0,.58)',
     color: 'white',
-    outline: 'none',
-    fontSize: 16
+    padding: '0 11px',
+    fontSize: 14,
+    outline: 'none'
   },
-  textarea: {
-    width: '100%',
-    padding: 14,
-    borderRadius: 15,
-    border: '1px solid rgba(255,255,255,.16)',
-    background: 'rgba(0,0,0,.6)',
-    color: 'white',
-    outline: 'none',
-    fontSize: 16,
-    minHeight: 86
+  suggestionHead: {
+    marginTop: 4,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    color: '#35ff75',
+    fontWeight: 900,
+    fontSize: 13
   },
-  searching: {
-    padding: 13,
-    borderRadius: 16,
-    background: 'rgba(29,185,84,.14)',
-    border: '1px solid rgba(29,185,84,.35)',
-    color: '#b7ffd0',
-    fontWeight: 800
-  },
-  suggestionBox: {
-    display: 'grid',
-    gap: 10
+  searchText: {
+    color: '#ddd',
+    fontWeight: 500,
+    fontSize: 12
   },
   song: {
     display: 'flex',
-    gap: 12,
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 18,
-    background: 'rgba(255,255,255,.065)',
-    border: '1px solid rgba(29,185,84,.28)',
+    gap: 10,
+    padding: 9,
+    borderRadius: 17,
+    background: 'linear-gradient(135deg,rgba(0,255,120,.18),rgba(0,20,50,.65))',
+    border: '1px solid #35ff75',
     color: 'white',
     cursor: 'pointer',
-    boxShadow: '0 0 20px rgba(0,0,0,.25)'
+    boxShadow: '0 0 25px rgba(29,185,84,.35)'
   },
   cover: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
+    width: 60,
+    height: 60,
+    borderRadius: 11,
     objectFit: 'cover'
   },
   artist: {
-    fontSize: 13,
-    opacity: .72,
-    marginTop: 3
+    opacity: .75,
+    marginTop: 4
   },
-  selected: {
+  play: {
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    border: '2px solid rgba(255,255,255,.8)',
     display: 'flex',
-    gap: 14,
     alignItems: 'center',
-    padding: 15,
-    borderRadius: 20,
-    background: 'linear-gradient(135deg,rgba(29,185,84,.2),rgba(124,58,237,.16))',
-    border: '1px solid rgba(29,185,84,.6)',
-    boxShadow: '0 0 30px rgba(29,185,84,.18)'
-  },
-  selectedCover: {
-    width: 76,
-    height: 76,
-    borderRadius: 16,
-    objectFit: 'cover'
-  },
-  selectedLabel: {
-    color: '#1db954',
-    fontWeight: 900,
-    fontSize: 12,
-    marginBottom: 5
+    justifyContent: 'center',
+    fontWeight: 900
   },
   button: {
-    padding: 18,
-    borderRadius: 20,
+    marginTop: 3,
+    minHeight: 68,
     border: 0,
-    background: 'linear-gradient(135deg,#1db954,#7c3aed)',
-    color: '#fff',
+    borderRadius: 18,
+    background: 'linear-gradient(135deg,#1db954 0%,#22c55e 40%,#7c3aed 100%)',
+    color: 'white',
     fontWeight: 900,
-    fontSize: 17,
+    fontSize: 20,
     cursor: 'pointer',
-    boxShadow: '0 0 38px rgba(29,185,84,.38)'
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    boxShadow: '0 0 35px rgba(29,185,84,.45)'
+  },
+  paper: {
+    fontSize: 28
+  },
+  small: {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 500,
+    opacity: .85,
+    marginTop: 2
   }
 };
