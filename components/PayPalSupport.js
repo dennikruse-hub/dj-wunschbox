@@ -23,22 +23,23 @@ export default function PayPalSupport() {
 const styles = {
   paypalCard: {
     marginTop: 20,
-    padding: 16,
-    borderRadius: 20,
-    background: 'rgba(0,0,0,0.28)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    textAlign: 'center'
+    padding: 18,
+    borderRadius: 22,
+    background: 'linear-gradient(135deg,rgba(0,0,0,.34),rgba(29,185,84,.08))',
+    border: '1px solid rgba(255,255,255,.14)',
+    textAlign: 'center',
+    boxShadow: '0 0 30px rgba(29,185,84,.12)'
   },
   payText: {
-    opacity: 0.7,
+    opacity: .72,
     margin: '8px 0 14px'
   },
   paypal: {
     display: 'block',
-    padding: 14,
+    padding: 15,
     background: '#1db954',
     color: '#000',
-    borderRadius: 14,
+    borderRadius: 16,
     textDecoration: 'none',
     fontWeight: 900
   }
