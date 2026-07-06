@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import PremiumHeader from '../components/PremiumHeader';
-import PayPalSupport from '../components/PayPalSupport';
 import RequestForm from '../components/RequestForm';
 import BackgroundGlow from '../components/BackgroundGlow';
 
@@ -35,7 +34,7 @@ export default function Home() {
       } finally {
         setSearching(false);
       }
-    }, 350);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [form.artist, form.title, selectedTrack]);
@@ -71,7 +70,6 @@ export default function Home() {
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error || 'Fehler beim Senden.');
 
       localStorage.setItem('djwunschbox_count', String(currentCount + 1));
@@ -109,7 +107,13 @@ export default function Home() {
           selectedTrack={selectedTrack}
         />
 
-        <div style={styles.counter}>Gesendete Wünsche auf diesem Gerät: {count}/3</div>
+        <div style={styles.counterBox}>
+          <div>Gesendete Wünsche auf diesem Gerät</div>
+          <strong>{count} / 3</strong>
+          <div style={styles.progress}>
+            <div style={{ ...styles.progressFill, width: `${Math.min(count / 3, 1) * 100}%` }}></div>
+          </div>
+        </div>
 
         {status && (
           <div style={{
@@ -118,16 +122,8 @@ export default function Home() {
             ...(status.type === 'error' ? styles.error : {})
           }}>
             <b>{status.text}</b>
-            {status.track && (
-              <div style={styles.statusTrack}>
-                {status.track.image && <img src={status.track.image} style={styles.cover} />}
-                <div>{status.track.artist} – {status.track.title}</div>
-              </div>
-            )}
           </div>
         )}
-
-        <PayPalSupport />
       </section>
     </main>
   );
@@ -136,57 +132,63 @@ export default function Home() {
 const styles = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg,#04040a,#090014 45%,#020503)',
+    background: '#02030a',
     color: 'white',
     fontFamily: 'Arial, Helvetica, sans-serif',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 18,
+    alignItems: 'flex-start',
+    padding: 14,
     position: 'relative',
     overflow: 'auto'
   },
   app: {
     width: '100%',
-    maxWidth: 570,
-    background: 'rgba(255,255,255,.065)',
-    border: '1px solid rgba(255,255,255,.16)',
+    maxWidth: 430,
+    marginTop: 8,
+    padding: 16,
     borderRadius: 30,
-    padding: 24,
-    backdropFilter: 'blur(20px)',
-    boxShadow: '0 0 70px rgba(29,185,84,.2), 0 30px 95px rgba(0,0,0,.78)',
+    background:
+      'radial-gradient(circle at 20% 15%,rgba(29,185,84,.26),transparent 30%), radial-gradient(circle at 90% 55%,rgba(124,58,237,.30),transparent 40%), rgba(2,6,23,.88)',
+    border: '1px solid rgba(255,255,255,.18)',
+    boxShadow: '0 0 50px rgba(29,185,84,.22), 0 25px 80px rgba(0,0,0,.85)',
+    backdropFilter: 'blur(18px)',
     position: 'relative',
     zIndex: 2
   },
-  counter: {
-    marginTop: 14,
-    opacity: .72,
-    fontSize: 13
+  counterBox: {
+    marginTop: 12,
+    padding: 13,
+    borderRadius: 16,
+    background: 'rgba(0,0,0,.35)',
+    border: '1px solid rgba(255,255,255,.16)',
+    display: 'grid',
+    gap: 8,
+    color: '#ddd'
+  },
+  progress: {
+    height: 7,
+    borderRadius: 999,
+    background: 'rgba(255,255,255,.12)',
+    overflow: 'hidden'
+  },
+  progressFill: {
+    height: '100%',
+    background: '#22c55e',
+    borderRadius: 999
   },
   status: {
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 20,
-    background: 'rgba(0,0,0,.38)',
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 14,
+    background: 'rgba(0,0,0,.42)',
     border: '1px solid rgba(255,255,255,.14)'
   },
   success: {
-    border: '1px solid rgba(29,185,84,.8)'
+    border: '1px solid #22c55e'
   },
   error: {
     border: '1px solid #ff4444',
     color: '#ffaaaa'
-  },
-  statusTrack: {
-    display: 'flex',
-    gap: 10,
-    alignItems: 'center',
-    marginTop: 10
-  },
-  cover: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    objectFit: 'cover'
   }
 };
