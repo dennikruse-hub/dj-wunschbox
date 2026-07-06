@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import PremiumHeader from '../components/PremiumHeader';
+import PayPalSupport from '../components/PayPalSupport';
 
 export default function Home() {
   const [form, setForm] = useState({ artist: '', title: '', guest: '', message: '' });
@@ -43,11 +45,7 @@ export default function Home() {
 
   function chooseTrack(track) {
     setSelectedTrack(track);
-    setForm({
-      ...form,
-      artist: track.artist,
-      title: track.title
-    });
+    setForm({ ...form, artist: track.artist, title: track.title });
     setSuggestions([]);
   }
 
@@ -72,9 +70,7 @@ export default function Home() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Fehler beim Senden.');
-      }
+      if (!res.ok) throw new Error(data.error || 'Fehler beim Senden.');
 
       localStorage.setItem('djwunschbox_count', String(currentCount + 1));
       setCount(currentCount + 1);
@@ -88,7 +84,6 @@ export default function Home() {
       setForm({ artist: '', title: '', guest: '', message: '' });
       setSuggestions([]);
       setSelectedTrack(null);
-
     } catch (err) {
       setStatus({ type: 'error', text: err.message });
     }
@@ -100,16 +95,7 @@ export default function Home() {
       <div style={styles.glowTwo}></div>
 
       <section style={styles.app}>
-        <div style={styles.topBadge}>● LIVE PARTY MODE</div>
-
-        <header style={styles.header}>
-          <div style={styles.logoCircle}>🎧</div>
-          <div>
-            <div style={styles.dj}>DJ DENNIS</div>
-            <h1 style={styles.title}>Wunschbox</h1>
-            <p style={styles.subtitle}>Wünsch dir deinen Song direkt in die Spotify-Playlist.</p>
-          </div>
-        </header>
+        <PremiumHeader />
 
         <form onSubmit={submit} style={styles.form}>
           <Input label="👤 Dein Name">
@@ -178,20 +164,7 @@ export default function Home() {
           </div>
         )}
 
-        <div style={styles.paypalCard}>
-          <div>
-            <b>💚 DJ Support</b>
-            <p style={styles.payText}>Wenn dir die Musik gefällt, kannst du DJ Dennis unterstützen.</p>
-          </div>
-
-          <a
-            href="https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG"
-            target="_blank"
-            style={styles.paypal}
-          >
-            💸 Trinkgeld geben
-          </a>
-        </div>
+        <PayPalSupport />
       </section>
     </main>
   );
@@ -250,50 +223,6 @@ const styles = {
     boxShadow: '0 0 60px rgba(29,185,84,0.18), 0 30px 90px rgba(0,0,0,0.75)',
     position: 'relative',
     zIndex: 2
-  },
-  topBadge: {
-    display: 'inline-block',
-    padding: '8px 14px',
-    borderRadius: 999,
-    background: 'rgba(29,185,84,0.18)',
-    border: '1px solid rgba(29,185,84,0.5)',
-    color: '#7dffad',
-    fontWeight: 'bold',
-    fontSize: 12,
-    marginBottom: 18
-  },
-  header: {
-    display: 'flex',
-    gap: 16,
-    alignItems: 'center',
-    marginBottom: 22
-  },
-  logoCircle: {
-    width: 62,
-    height: 62,
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg,#1db954,#7c3aed)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 32,
-    boxShadow: '0 0 35px rgba(29,185,84,0.45)'
-  },
-  dj: {
-    color: '#1db954',
-    fontWeight: 900,
-    letterSpacing: 2,
-    fontSize: 14
-  },
-  title: {
-    margin: '2px 0',
-    fontSize: 42,
-    lineHeight: 1
-  },
-  subtitle: {
-    margin: 0,
-    opacity: 0.72,
-    lineHeight: 1.4
   },
   form: {
     display: 'grid',
@@ -422,26 +351,5 @@ const styles = {
     gap: 10,
     alignItems: 'center',
     marginTop: 10
-  },
-  paypalCard: {
-    marginTop: 20,
-    padding: 16,
-    borderRadius: 20,
-    background: 'rgba(0,0,0,0.28)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    textAlign: 'center'
-  },
-  payText: {
-    opacity: 0.7,
-    margin: '8px 0 14px'
-  },
-  paypal: {
-    display: 'block',
-    padding: 14,
-    background: '#1db954',
-    color: '#000',
-    borderRadius: 14,
-    textDecoration: 'none',
-    fontWeight: 900
   }
 };
