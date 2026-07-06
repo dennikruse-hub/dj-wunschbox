@@ -62,7 +62,7 @@ export default function Home() {
     }
 
     try {
-      setStatus({ type: 'loading', text: 'Sende deinen Wunsch...' });
+      setStatus({ type: 'loading', text: 'Dein Wunsch wird gesendet...' });
 
       const res = await fetch('/api/request', {
         method: 'POST',
@@ -81,7 +81,7 @@ export default function Home() {
 
       setStatus({
         type: 'success',
-        text: '🎉 Wunsch wurde erfolgreich gesendet!',
+        text: '🎉 Wunsch erfolgreich gesendet!',
         track: data.track
       });
 
@@ -96,256 +96,322 @@ export default function Home() {
 
   return (
     <main style={styles.page}>
-      <div style={styles.bg}></div>
+      <div style={styles.glowOne}></div>
+      <div style={styles.glowTwo}></div>
 
-      <header style={styles.header}>
-        <div style={styles.logo}>🎧 DJ DENNIS</div>
-        <div style={styles.subtitle}>WUNSCHBOX LIVE SYSTEM</div>
-      </header>
+      <section style={styles.app}>
+        <div style={styles.topBadge}>● LIVE PARTY MODE</div>
 
-      <section style={styles.grid}>
-        <form onSubmit={submit} style={styles.card}>
-          <h2>🎵 Wunsch senden</h2>
+        <header style={styles.header}>
+          <div style={styles.logoCircle}>🎧</div>
+          <div>
+            <div style={styles.dj}>DJ DENNIS</div>
+            <h1 style={styles.title}>Wunschbox</h1>
+            <p style={styles.subtitle}>Wünsch dir deinen Song direkt in die Spotify-Playlist.</p>
+          </div>
+        </header>
 
-          <input
-            name="artist"
-            value={form.artist}
-            onChange={update}
-            style={styles.input}
-            placeholder="Interpret"
-          />
+        <form onSubmit={submit} style={styles.form}>
+          <Input label="👤 Dein Name">
+            <input name="guest" value={form.guest} onChange={update} style={styles.input} placeholder="z. B. Dennis" />
+          </Input>
 
-          <input
-            name="title"
-            value={form.title}
-            onChange={update}
-            style={styles.input}
-            placeholder="Songtitel"
-          />
+          <Input label="🎤 Interpret">
+            <input name="artist" value={form.artist} onChange={update} style={styles.input} placeholder="z. B. Roland Kaiser" />
+          </Input>
 
-          <input
-            name="guest"
-            value={form.guest}
-            onChange={update}
-            style={styles.input}
-            placeholder="Dein Name"
-          />
+          <Input label="🎵 Songtitel">
+            <input name="title" value={form.title} onChange={update} style={styles.input} placeholder="z. B. Warum hast du nicht nein gesagt" />
+          </Input>
 
-          {searching && (
-            <div style={styles.searching}>🔎 Spotify sucht passende Songs...</div>
-          )}
+          {searching && <div style={styles.searching}>🔎 Spotify sucht passende Songs...</div>}
 
-          {suggestions.map(track => (
-            <div key={track.id} onClick={() => chooseTrack(track)} style={styles.song}>
-              {track.image && <img src={track.image} style={styles.cover} />}
-              <div>
-                <b>{track.title}</b>
-                <div style={styles.artist}>{track.artist}</div>
-              </div>
+          {suggestions.length > 0 && (
+            <div style={styles.suggestionBox}>
+              {suggestions.map(track => (
+                <button type="button" key={track.id} onClick={() => chooseTrack(track)} style={styles.song}>
+                  {track.image && <img src={track.image} style={styles.cover} />}
+                  <div style={{ textAlign: 'left' }}>
+                    <b>{track.title}</b>
+                    <div style={styles.artist}>{track.artist}</div>
+                  </div>
+                </button>
+              ))}
             </div>
-          ))}
+          )}
 
           {selectedTrack && (
             <div style={styles.selected}>
               {selectedTrack.image && <img src={selectedTrack.image} style={styles.selectedCover} />}
               <div>
-                <b>Ausgewählt:</b>
-                <div>{selectedTrack.artist} – {selectedTrack.title}</div>
+                <div style={styles.selectedLabel}>Spotify gefunden</div>
+                <b>{selectedTrack.title}</b>
+                <div style={styles.artist}>{selectedTrack.artist}</div>
               </div>
             </div>
           )}
 
-          <textarea
-            name="message"
-            value={form.message}
-            onChange={update}
-            style={styles.textarea}
-            placeholder="Gruß optional"
-          />
+          <Input label="💬 Gruß optional">
+            <textarea name="message" value={form.message} onChange={update} style={styles.textarea} placeholder="Gruß an DJ Dennis oder das Geburtstagskind..." />
+          </Input>
 
           <button style={styles.button} disabled={status?.type === 'loading'}>
-            {status?.type === 'loading' ? 'Bitte warten...' : '🎧 Wunsch senden'}
+            {status?.type === 'loading' ? 'Bitte warten...' : '🎵 WUNSCH SENDEN'}
           </button>
-
-          <div style={styles.counter}>Gesendete Wünsche: {count}/3</div>
-
-          {status && (
-            <div style={{
-              ...styles.status,
-              ...(status.type === 'success' ? styles.success : {}),
-              ...(status.type === 'error' ? styles.error : {})
-            }}>
-              <b>{status.text}</b>
-              {status.track && (
-                <div style={styles.statusTrack}>
-                  {status.track.image && <img src={status.track.image} style={styles.cover} />}
-                  <div>{status.track.artist} – {status.track.title}</div>
-                </div>
-              )}
-            </div>
-          )}
         </form>
 
-        <div style={styles.card}>
-          <h2>💚 Support DJ</h2>
+        <div style={styles.counter}>Gesendete Wünsche auf diesem Gerät: {count}/3</div>
 
-          <div style={styles.supportBox}>
-            Wenn dir die Musik gefällt ❤️
+        {status && (
+          <div style={{
+            ...styles.status,
+            ...(status.type === 'success' ? styles.success : {}),
+            ...(status.type === 'error' ? styles.error : {})
+          }}>
+            <b>{status.text}</b>
+            {status.track && (
+              <div style={styles.statusTrack}>
+                {status.track.image && <img src={status.track.image} style={styles.cover} />}
+                <div>{status.track.artist} – {status.track.title}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={styles.paypalCard}>
+          <div>
+            <b>💚 DJ Support</b>
+            <p style={styles.payText}>Wenn dir die Musik gefällt, kannst du DJ Dennis unterstützen.</p>
           </div>
 
           <a
             href="https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG"
-            style={styles.paypal}
             target="_blank"
+            style={styles.paypal}
           >
             💸 Trinkgeld geben
           </a>
-
-          <div style={styles.info}>
-            📱 QR Code scannen → Wunsch senden
-          </div>
         </div>
       </section>
     </main>
   );
 }
 
+function Input({ label, children }) {
+  return (
+    <label style={styles.inputWrap}>
+      <div style={styles.inputLabel}>{label}</div>
+      {children}
+    </label>
+  );
+}
+
 const styles = {
   page: {
     minHeight: '100vh',
-    background: '#05060a',
+    background: 'linear-gradient(135deg,#04040a,#090014 45%,#020503)',
     color: 'white',
-    fontFamily: 'Arial',
-    overflow: 'auto',
-    paddingBottom: 80
-  },
-  bg: {
-    position: 'fixed',
-    inset: 0,
-    background:
-      'radial-gradient(circle at 20% 20%, #1db95433, transparent 40%), radial-gradient(circle at 80% 30%, #7c3aed33, transparent 40%), #05060a',
-    pointerEvents: 'none'
-  },
-  header: {
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 18,
     position: 'relative',
-    textAlign: 'center',
-    padding: 30,
+    overflow: 'auto'
+  },
+  glowOne: {
+    position: 'fixed',
+    top: -120,
+    left: -120,
+    width: 360,
+    height: 360,
+    background: '#1db95455',
+    filter: 'blur(90px)',
+    borderRadius: '50%'
+  },
+  glowTwo: {
+    position: 'fixed',
+    right: -140,
+    bottom: -120,
+    width: 420,
+    height: 420,
+    background: '#7c3aed66',
+    filter: 'blur(100px)',
+    borderRadius: '50%'
+  },
+  app: {
+    width: '100%',
+    maxWidth: 560,
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.14)',
+    borderRadius: 28,
+    padding: 24,
+    backdropFilter: 'blur(18px)',
+    boxShadow: '0 0 60px rgba(29,185,84,0.18), 0 30px 90px rgba(0,0,0,0.75)',
+    position: 'relative',
     zIndex: 2
   },
-  logo: {
-    fontSize: 42,
+  topBadge: {
+    display: 'inline-block',
+    padding: '8px 14px',
+    borderRadius: 999,
+    background: 'rgba(29,185,84,0.18)',
+    border: '1px solid rgba(29,185,84,0.5)',
+    color: '#7dffad',
     fontWeight: 'bold',
+    fontSize: 12,
+    marginBottom: 18
+  },
+  header: {
+    display: 'flex',
+    gap: 16,
+    alignItems: 'center',
+    marginBottom: 22
+  },
+  logoCircle: {
+    width: 62,
+    height: 62,
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg,#1db954,#7c3aed)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 32,
+    boxShadow: '0 0 35px rgba(29,185,84,0.45)'
+  },
+  dj: {
     color: '#1db954',
-    letterSpacing: 2
+    fontWeight: 900,
+    letterSpacing: 2,
+    fontSize: 14
+  },
+  title: {
+    margin: '2px 0',
+    fontSize: 42,
+    lineHeight: 1
   },
   subtitle: {
-    opacity: 0.7,
-    marginTop: 8
+    margin: 0,
+    opacity: 0.72,
+    lineHeight: 1.4
   },
-  grid: {
-    position: 'relative',
-    zIndex: 2,
+  form: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: 20,
-    padding: 30,
-    maxWidth: 1100,
-    margin: '0 auto'
+    gap: 13
   },
-  card: {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(29,185,84,0.25)',
-    borderRadius: 20,
-    padding: 20,
-    backdropFilter: 'blur(10px)'
+  inputWrap: {
+    display: 'grid',
+    gap: 7,
+    background: 'rgba(0,0,0,0.24)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 18,
+    padding: 13
+  },
+  inputLabel: {
+    fontWeight: 800,
+    fontSize: 14,
+    color: '#eafff1'
   },
   input: {
     width: '100%',
-    padding: 12,
-    marginTop: 10,
-    borderRadius: 10,
-    border: '1px solid #333',
-    background: '#0b0b0f',
-    color: 'white'
+    padding: 13,
+    borderRadius: 14,
+    border: '1px solid rgba(255,255,255,0.16)',
+    background: 'rgba(0,0,0,0.55)',
+    color: 'white',
+    outline: 'none',
+    fontSize: 16
   },
   textarea: {
     width: '100%',
-    padding: 12,
-    marginTop: 10,
-    borderRadius: 10,
-    border: '1px solid #333',
-    background: '#0b0b0f',
+    padding: 13,
+    borderRadius: 14,
+    border: '1px solid rgba(255,255,255,0.16)',
+    background: 'rgba(0,0,0,0.55)',
     color: 'white',
-    minHeight: 80
-  },
-  button: {
-    marginTop: 15,
-    width: '100%',
-    padding: 14,
-    borderRadius: 12,
-    border: 0,
-    background: 'linear-gradient(135deg,#1db954,#7c3aed)',
-    color: 'black',
-    fontWeight: 'bold',
-    cursor: 'pointer'
+    outline: 'none',
+    fontSize: 16,
+    minHeight: 82
   },
   searching: {
-    marginTop: 10,
-    padding: 10,
-    borderRadius: 10,
-    background: 'rgba(29,185,84,0.12)',
+    padding: 12,
+    borderRadius: 16,
+    background: 'rgba(29,185,84,0.14)',
+    border: '1px solid rgba(29,185,84,0.35)',
     color: '#b7ffd0'
+  },
+  suggestionBox: {
+    display: 'grid',
+    gap: 9
   },
   song: {
     display: 'flex',
-    gap: 10,
+    gap: 12,
     alignItems: 'center',
-    padding: 10,
-    marginTop: 8,
-    borderRadius: 12,
-    background: 'rgba(255,255,255,0.05)',
+    padding: 11,
+    borderRadius: 16,
+    background: 'rgba(255,255,255,0.06)',
     border: '1px solid rgba(29,185,84,0.25)',
+    color: 'white',
     cursor: 'pointer'
   },
   cover: {
-    width: 46,
-    height: 46,
-    borderRadius: 8,
+    width: 48,
+    height: 48,
+    borderRadius: 10,
     objectFit: 'cover'
   },
   artist: {
     fontSize: 13,
-    opacity: 0.7
+    opacity: 0.72,
+    marginTop: 3
   },
   selected: {
     display: 'flex',
-    gap: 10,
+    gap: 14,
     alignItems: 'center',
-    marginTop: 10,
-    padding: 10,
-    borderRadius: 12,
-    background: 'rgba(29,185,84,0.15)',
-    border: '1px solid #1db954'
+    padding: 14,
+    borderRadius: 18,
+    background: 'linear-gradient(135deg,rgba(29,185,84,0.18),rgba(124,58,237,0.16))',
+    border: '1px solid rgba(29,185,84,0.55)'
   },
   selectedCover: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
+    width: 72,
+    height: 72,
+    borderRadius: 15,
     objectFit: 'cover'
   },
+  selectedLabel: {
+    color: '#1db954',
+    fontWeight: 900,
+    fontSize: 12,
+    marginBottom: 4
+  },
+  button: {
+    padding: 17,
+    borderRadius: 18,
+    border: 0,
+    background: 'linear-gradient(135deg,#1db954,#7c3aed)',
+    color: '#fff',
+    fontWeight: 900,
+    fontSize: 17,
+    cursor: 'pointer',
+    boxShadow: '0 0 35px rgba(29,185,84,0.35)'
+  },
   counter: {
-    marginTop: 10,
-    fontSize: 13,
-    opacity: 0.75
+    marginTop: 14,
+    opacity: 0.7,
+    fontSize: 13
   },
   status: {
-    marginTop: 15,
-    padding: 12,
-    borderRadius: 12,
-    background: '#111'
+    marginTop: 16,
+    padding: 15,
+    borderRadius: 18,
+    background: 'rgba(0,0,0,0.35)',
+    border: '1px solid rgba(255,255,255,0.12)'
   },
   success: {
-    border: '1px solid #1db954'
+    border: '1px solid rgba(29,185,84,0.75)'
   },
   error: {
     border: '1px solid #ff4444',
@@ -355,29 +421,27 @@ const styles = {
     display: 'flex',
     gap: 10,
     alignItems: 'center',
-    marginTop: 8
+    marginTop: 10
+  },
+  paypalCard: {
+    marginTop: 20,
+    padding: 16,
+    borderRadius: 20,
+    background: 'rgba(0,0,0,0.28)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    textAlign: 'center'
+  },
+  payText: {
+    opacity: 0.7,
+    margin: '8px 0 14px'
   },
   paypal: {
     display: 'block',
-    marginTop: 15,
     padding: 14,
     background: '#1db954',
     color: '#000',
-    textAlign: 'center',
-    borderRadius: 12,
+    borderRadius: 14,
     textDecoration: 'none',
-    fontWeight: 'bold'
-  },
-  supportBox: {
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 12,
-    background: 'rgba(29,185,84,0.1)'
-  },
-  info: {
-    marginTop: 15,
-    fontSize: 12,
-    opacity: 0.7,
-    textAlign: 'center'
+    fontWeight: 900
   }
 };
