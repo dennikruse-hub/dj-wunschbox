@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const token = await getAccessToken();
 
     const spotifyRes = await fetch(
-      `https://api.spotify.com/v1/playlists/${playlistId}?fields=tracks.items(track(id,name,uri,artists(name),album(images)))`,
+      `https://api.spotify.com/v1/playlists/${playlistId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`
