@@ -8,7 +8,6 @@ export default async function handler(req, res) {
     const meRes = await fetch('https://api.spotify.com/v1/me', {
       headers: { Authorization: `Bearer ${token}` }
     });
-
     const me = await meRes.json();
 
     const playlistRes = await fetch(
@@ -17,8 +16,9 @@ export default async function handler(req, res) {
         headers: { Authorization: `Bearer ${token}` }
       }
     );
-
     const playlist = await playlistRes.json();
+
+    const tracksFromPlaylist = playlist.tracks?.items || [];
 
     return res.status(200).json({
       playlistId,
@@ -33,8 +33,19 @@ export default async function handler(req, res) {
         name: playlist.name,
         owner: playlist.owner?.id,
         public: playlist.public,
-        collaborative: playlist.collaborative
+        collaborative: playlist.collaborative,
+        tracksTotal: playlist.tracks?.total,
+        tracksItemsLength: tracksFromPlaylist.length
       },
+      tracks: tracksFromPlaylist.map(item => ({
+        id: item.track?.id,
+        title: item.track?.name,
+        artist: item.track?.artists?.map(a => a.name).join(', '),
+        image:
+          item.track?.album?.images?.[1]?.url ||
+          item.track?.album?.images?.[0]?.url ||
+          null
+      })),
       error: playlist.error || null
     });
 
