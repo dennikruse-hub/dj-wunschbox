@@ -141,16 +141,16 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    padding: 14,
+    padding: 10,
     position: 'relative',
     overflow: 'auto'
   },
   app: {
     width: '100%',
-    maxWidth: 430,
-    marginTop: 8,
-    padding: 16,
-    borderRadius: 30,
+    maxWidth: 420,
+    marginTop: 6,
+    padding: 14,
+    borderRadius: 28,
     background:
       'radial-gradient(circle at 20% 15%,rgba(29,185,84,.26),transparent 30%), radial-gradient(circle at 90% 55%,rgba(124,58,237,.30),transparent 40%), rgba(2,6,23,.88)',
     border: '1px solid rgba(255,255,255,.18)',
@@ -160,13 +160,13 @@ const styles = {
     zIndex: 2
   },
   counterBox: {
-    marginTop: 12,
-    padding: 13,
+    marginTop: 10,
+    padding: 11,
     borderRadius: 16,
     background: 'rgba(0,0,0,.35)',
     border: '1px solid rgba(255,255,255,.16)',
     display: 'grid',
-    gap: 8,
+    gap: 7,
     color: '#ddd'
   },
   progress: {
@@ -182,7 +182,7 @@ const styles = {
   },
   status: {
     marginTop: 10,
-    padding: 12,
+    padding: 11,
     borderRadius: 14,
     background: 'rgba(0,0,0,.42)',
     border: '1px solid rgba(255,255,255,.14)'
