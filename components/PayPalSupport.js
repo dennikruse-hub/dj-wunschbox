@@ -1,18 +1,15 @@
 export default function PayPalSupport() {
   return (
-    <div style={styles.paypalCard}>
-      <div>
-        <b>💚 DJ Support</b>
-        <p style={styles.payText}>
-          Wenn dir die Musik gefällt, kannst du DJ Dennis unterstützen.
-        </p>
+    <div style={styles.box}>
+      <div style={styles.text}>
+        💚 Unterstütze DJ Dennis
       </div>
 
       <a
         href="https://www.paypal.com/donate/?hosted_button_id=F7AH256S64MDG"
         target="_blank"
         rel="noreferrer"
-        style={styles.paypal}
+        style={styles.button}
       >
         💸 Trinkgeld geben
       </a>
@@ -21,26 +18,27 @@ export default function PayPalSupport() {
 }
 
 const styles = {
-  paypalCard: {
-    marginTop: 20,
-    padding: 18,
-    borderRadius: 22,
-    background: 'linear-gradient(135deg,rgba(0,0,0,.34),rgba(29,185,84,.08))',
-    border: '1px solid rgba(255,255,255,.14)',
-    textAlign: 'center',
-    boxShadow: '0 0 30px rgba(29,185,84,.12)'
+  box: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 18,
+    background: 'linear-gradient(135deg,rgba(0,0,0,.38),rgba(29,185,84,.12))',
+    border: '1px solid rgba(29,185,84,.35)',
+    textAlign: 'center'
   },
-  payText: {
-    opacity: .72,
-    margin: '8px 0 14px'
+  text: {
+    fontWeight: 900,
+    marginBottom: 10,
+    color: '#7dffad'
   },
-  paypal: {
+  button: {
     display: 'block',
-    padding: 15,
-    background: '#1db954',
-    color: '#000',
-    borderRadius: 16,
+    padding: 13,
+    borderRadius: 15,
+    background: 'linear-gradient(135deg,#1db954,#7c3aed)',
+    color: '#fff',
     textDecoration: 'none',
-    fontWeight: 900
+    fontWeight: 900,
+    boxShadow: '0 0 25px rgba(29,185,84,.35)'
   }
 };
