@@ -148,30 +148,30 @@ const styles = {
   },
   app: {
     width: '100%',
-    maxWidth: 560,
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.14)',
-    borderRadius: 28,
+    maxWidth: 570,
+    background: 'rgba(255,255,255,.065)',
+    border: '1px solid rgba(255,255,255,.16)',
+    borderRadius: 30,
     padding: 24,
-    backdropFilter: 'blur(18px)',
-    boxShadow: '0 0 60px rgba(29,185,84,0.18), 0 30px 90px rgba(0,0,0,0.75)',
+    backdropFilter: 'blur(20px)',
+    boxShadow: '0 0 70px rgba(29,185,84,.2), 0 30px 95px rgba(0,0,0,.78)',
     position: 'relative',
     zIndex: 2
   },
   counter: {
     marginTop: 14,
-    opacity: 0.7,
+    opacity: .72,
     fontSize: 13
   },
   status: {
     marginTop: 16,
-    padding: 15,
-    borderRadius: 18,
-    background: 'rgba(0,0,0,0.35)',
-    border: '1px solid rgba(255,255,255,0.12)'
+    padding: 16,
+    borderRadius: 20,
+    background: 'rgba(0,0,0,.38)',
+    border: '1px solid rgba(255,255,255,.14)'
   },
   success: {
-    border: '1px solid rgba(29,185,84,0.75)'
+    border: '1px solid rgba(29,185,84,.8)'
   },
   error: {
     border: '1px solid #ff4444',
@@ -184,9 +184,9 @@ const styles = {
     marginTop: 10
   },
   cover: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 12,
     objectFit: 'cover'
   }
 };
