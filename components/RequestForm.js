@@ -10,17 +10,17 @@ export default function RequestForm({
 }) {
   return (
     <form onSubmit={submit} style={styles.form}>
-      <Input label="👤 Dein Name">
+      <Field label="👤 Dein Name">
         <input name="guest" value={form.guest} onChange={update} style={styles.input} placeholder="z. B. Dennis" />
-      </Input>
+      </Field>
 
-      <Input label="🎤 Interpret">
+      <Field label="🎤 Interpret">
         <input name="artist" value={form.artist} onChange={update} style={styles.input} placeholder="z. B. Roland Kaiser" />
-      </Input>
+      </Field>
 
-      <Input label="🎵 Songtitel">
+      <Field label="🎵 Songtitel">
         <input name="title" value={form.title} onChange={update} style={styles.input} placeholder="z. B. Warum hast du nicht nein gesagt" />
-      </Input>
+      </Field>
 
       {searching && <div style={styles.searching}>🔎 Spotify sucht passende Songs...</div>}
 
@@ -42,16 +42,22 @@ export default function RequestForm({
         <div style={styles.selected}>
           {selectedTrack.image && <img src={selectedTrack.image} style={styles.selectedCover} />}
           <div>
-            <div style={styles.selectedLabel}>Spotify gefunden</div>
+            <div style={styles.selectedLabel}>✅ Spotify gefunden</div>
             <b>{selectedTrack.title}</b>
             <div style={styles.artist}>{selectedTrack.artist}</div>
           </div>
         </div>
       )}
 
-      <Input label="💬 Gruß optional">
-        <textarea name="message" value={form.message} onChange={update} style={styles.textarea} placeholder="Gruß an DJ Dennis oder das Geburtstagskind..." />
-      </Input>
+      <Field label="💬 Gruß optional">
+        <textarea
+          name="message"
+          value={form.message}
+          onChange={update}
+          style={styles.textarea}
+          placeholder="Gruß an DJ Dennis oder das Geburtstagskind..."
+        />
+      </Field>
 
       <button style={styles.button} disabled={status?.type === 'loading'}>
         {status?.type === 'loading' ? 'Bitte warten...' : '🎵 WUNSCH SENDEN'}
@@ -60,10 +66,10 @@ export default function RequestForm({
   );
 }
 
-function Input({ label, children }) {
+function Field({ label, children }) {
   return (
-    <label style={styles.inputWrap}>
-      <div style={styles.inputLabel}>{label}</div>
+    <label style={styles.field}>
+      <div style={styles.label}>{label}</div>
       {children}
     </label>
   );
@@ -72,105 +78,109 @@ function Input({ label, children }) {
 const styles = {
   form: {
     display: 'grid',
-    gap: 13
+    gap: 14
   },
-  inputWrap: {
+  field: {
     display: 'grid',
-    gap: 7,
-    background: 'rgba(0,0,0,0.24)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: 18,
-    padding: 13
+    gap: 8,
+    background: 'rgba(0,0,0,.28)',
+    border: '1px solid rgba(255,255,255,.12)',
+    borderRadius: 20,
+    padding: 14,
+    boxShadow: 'inset 0 0 25px rgba(255,255,255,.025)'
   },
-  inputLabel: {
-    fontWeight: 800,
+  label: {
+    fontWeight: 900,
     fontSize: 14,
     color: '#eafff1'
   },
   input: {
     width: '100%',
-    padding: 13,
-    borderRadius: 14,
-    border: '1px solid rgba(255,255,255,0.16)',
-    background: 'rgba(0,0,0,0.55)',
+    padding: 14,
+    borderRadius: 15,
+    border: '1px solid rgba(255,255,255,.16)',
+    background: 'rgba(0,0,0,.6)',
     color: 'white',
     outline: 'none',
     fontSize: 16
   },
   textarea: {
     width: '100%',
-    padding: 13,
-    borderRadius: 14,
-    border: '1px solid rgba(255,255,255,0.16)',
-    background: 'rgba(0,0,0,0.55)',
+    padding: 14,
+    borderRadius: 15,
+    border: '1px solid rgba(255,255,255,.16)',
+    background: 'rgba(0,0,0,.6)',
     color: 'white',
     outline: 'none',
     fontSize: 16,
-    minHeight: 82
+    minHeight: 86
   },
   searching: {
-    padding: 12,
+    padding: 13,
     borderRadius: 16,
-    background: 'rgba(29,185,84,0.14)',
-    border: '1px solid rgba(29,185,84,0.35)',
-    color: '#b7ffd0'
+    background: 'rgba(29,185,84,.14)',
+    border: '1px solid rgba(29,185,84,.35)',
+    color: '#b7ffd0',
+    fontWeight: 800
   },
   suggestionBox: {
     display: 'grid',
-    gap: 9
+    gap: 10
   },
   song: {
     display: 'flex',
     gap: 12,
     alignItems: 'center',
-    padding: 11,
-    borderRadius: 16,
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(29,185,84,0.25)',
+    padding: 12,
+    borderRadius: 18,
+    background: 'rgba(255,255,255,.065)',
+    border: '1px solid rgba(29,185,84,.28)',
     color: 'white',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    boxShadow: '0 0 20px rgba(0,0,0,.25)'
   },
   cover: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
+    width: 52,
+    height: 52,
+    borderRadius: 12,
     objectFit: 'cover'
   },
   artist: {
     fontSize: 13,
-    opacity: 0.72,
+    opacity: .72,
     marginTop: 3
   },
   selected: {
     display: 'flex',
     gap: 14,
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 18,
-    background: 'linear-gradient(135deg,rgba(29,185,84,0.18),rgba(124,58,237,0.16))',
-    border: '1px solid rgba(29,185,84,0.55)'
+    padding: 15,
+    borderRadius: 20,
+    background: 'linear-gradient(135deg,rgba(29,185,84,.2),rgba(124,58,237,.16))',
+    border: '1px solid rgba(29,185,84,.6)',
+    boxShadow: '0 0 30px rgba(29,185,84,.18)'
   },
   selectedCover: {
-    width: 72,
-    height: 72,
-    borderRadius: 15,
+    width: 76,
+    height: 76,
+    borderRadius: 16,
     objectFit: 'cover'
   },
   selectedLabel: {
     color: '#1db954',
     fontWeight: 900,
     fontSize: 12,
-    marginBottom: 4
+    marginBottom: 5
   },
   button: {
-    padding: 17,
-    borderRadius: 18,
+    padding: 18,
+    borderRadius: 20,
     border: 0,
     background: 'linear-gradient(135deg,#1db954,#7c3aed)',
     color: '#fff',
     fontWeight: 900,
     fontSize: 17,
     cursor: 'pointer',
-    boxShadow: '0 0 35px rgba(29,185,84,0.35)'
+    boxShadow: '0 0 38px rgba(29,185,84,.38)'
   }
 };
