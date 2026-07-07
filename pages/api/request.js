@@ -1,7 +1,6 @@
 import {
   searchTrack,
   addTrackToPlaylist,
-  playlistContainsTrack,
   publicTrack
 } from '../../lib/spotify';
 
@@ -27,27 +26,25 @@ export default async function handler(req, res) {
       });
     }
 
-    const exists = await playlistContainsTrack(track.id);
-
-    if (!exists) {
-      await addTrackToPlaylist(track.uri);
-    }
+    await addTrackToPlaylist(track.uri);
 
     return res.status(200).json({
       ok: true,
-      track: publicTrack(track),
-      alreadyExists: exists
+      track: publicTrack(track)
     });
 
   } catch (err) {
-    if (String(err.message).includes('429')) {
+    const msg = String(err.message || '');
+
+    if (msg.includes('429') || msg.includes('Too many requests')) {
       return res.status(429).json({
         error: 'Spotify ist gerade kurz ausgelastet. Bitte versuche es in wenigen Sekunden erneut.'
       });
     }
 
     return res.status(500).json({
-      error: 'Wunsch konnte gerade nicht gesendet werden. Bitte kurz erneut versuchen.'
+      error: 'Wunsch konnte gerade nicht gesendet werden. Bitte kurz erneut versuchen.',
+      details: msg
     });
   }
 }
