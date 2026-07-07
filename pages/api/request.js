@@ -1,14 +1,19 @@
-import { addTrackToPlaylist, publicTrack, searchTrack } from '../../lib/spotify';
+import {
+  searchTrack,
+  addTrackToPlaylist,
+  playlistContainsTrack,
+  publicTrack
+} from '../../lib/spotify';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Nur POST erlaubt.' });
-  }
-
   try {
-    const { artist = '', title = '', guest = '', message = '' } = req.body || {};
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Methode nicht erlaubt.' });
+    }
 
-    if (!artist.trim() && !title.trim()) {
+    const { artist, title } = req.body || {};
+
+    if (!artist && !title) {
       return res.status(400).json({
         error: 'Bitte Interpret oder Songtitel eingeben.'
       });
@@ -18,25 +23,31 @@ export default async function handler(req, res) {
 
     if (!track) {
       return res.status(404).json({
-        error: 'Kein passender Song bei Spotify gefunden.'
+        error: 'Song wurde nicht gefunden.'
       });
     }
 
-    await addTrackToPlaylist(track.uri);
+    const exists = await playlistContainsTrack(track.id);
+
+    if (!exists) {
+      await addTrackToPlaylist(track.uri);
+    }
 
     return res.status(200).json({
       ok: true,
-      duplicate: false,
-      guest,
-      message,
-      track: publicTrack(track)
+      track: publicTrack(track),
+      alreadyExists: exists
     });
 
   } catch (err) {
-    console.error('API REQUEST ERROR:', err);
+    if (String(err.message).includes('429')) {
+      return res.status(429).json({
+        error: 'Spotify ist gerade kurz ausgelastet. Bitte versuche es in wenigen Sekunden erneut.'
+      });
+    }
 
     return res.status(500).json({
-      error: err.message || 'Unbekannter Serverfehler'
+      error: 'Wunsch konnte gerade nicht gesendet werden. Bitte kurz erneut versuchen.'
     });
   }
 }
