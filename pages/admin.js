@@ -6,6 +6,7 @@ const GUEST_URL = 'https://dj-wunschbox.vercel.app';
 export default function Admin() {
   const [tracks, setTracks] = useState([]);
   const [likes, setLikes] = useState({});
+  const [history, setHistory] = useState([]);
   const [popup, setPopup] = useState(null);
   const lastFirstId = useRef(null);
 
@@ -16,6 +17,9 @@ export default function Admin() {
 
       const likesRes = await fetch('/api/likes');
       const likesData = await likesRes.json();
+
+      const historyRes = await fetch('/api/history');
+      const historyData = await historyRes.json();
 
       const newTracks = listData.tracks || [];
 
@@ -34,6 +38,7 @@ export default function Admin() {
 
       setTracks(newTracks);
       setLikes(likesData.likes || {});
+      setHistory(historyData.history || []);
     } catch (err) {
       console.log(err);
     }
@@ -44,8 +49,14 @@ export default function Admin() {
     load();
   }
 
-  async function markPlayed(id) {
-    await fetch('/api/played?id=' + encodeURIComponent(id));
+  async function markPlayed(track) {
+    await fetch('/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ track })
+    });
+
+    await fetch('/api/played?id=' + encodeURIComponent(track.id));
     load();
   }
 
@@ -90,7 +101,7 @@ export default function Admin() {
 
         <h1 style={styles.title}>🎧 DJ Control Center</h1>
         <p style={styles.subtitle}>
-          Deine zentrale Übersicht für Musikwünsche, Likes und QR-Code.
+          Wünsche verwalten, QR-Code drucken und gespielte Songs speichern.
         </p>
 
         <div style={styles.stats}>
@@ -105,8 +116,8 @@ export default function Admin() {
           </div>
 
           <div style={styles.stat}>
-            <b>{topLiked[0] ? '🔥' : '–'}</b>
-            <span>Top Song</span>
+            <b>{history.length}</b>
+            <span>Gespielt</span>
           </div>
         </div>
 
@@ -114,7 +125,7 @@ export default function Admin() {
           <div style={styles.qrBox}>
             <h2 style={styles.boxTitle}>📱 Gäste QR-Code</h2>
             <p style={styles.text}>
-              Diesen QR-Code kannst du ausdrucken oder auf einem Bildschirm zeigen.
+              QR-Code für deine Gäste zum Scannen, Drucken oder Anzeigen.
             </p>
 
             <img
@@ -170,7 +181,7 @@ export default function Admin() {
               </div>
 
               <div style={styles.actions}>
-                <button style={styles.played} onClick={() => markPlayed(nextSong.id)}>
+                <button style={styles.played} onClick={() => markPlayed(nextSong)}>
                   ✔
                 </button>
                 <button style={styles.delete} onClick={() => removeTrack(nextSong.id)}>
@@ -203,12 +214,39 @@ export default function Admin() {
               </div>
 
               <div style={styles.actions}>
-                <button style={styles.played} onClick={() => markPlayed(track.id)}>
+                <button style={styles.played} onClick={() => markPlayed(track)}>
                   ✔
                 </button>
                 <button style={styles.delete} onClick={() => removeTrack(track.id)}>
                   🗑
                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <h2 style={styles.queueTitle}>📜 Bereits gespielt</h2>
+
+        {history.length === 0 && (
+          <div style={styles.empty}>Noch keine Songs als gespielt markiert.</div>
+        )}
+
+        <div style={styles.list}>
+          {history.slice(0, 20).map((track, index) => (
+            <div key={track.id + track.playedAt + index} style={styles.historyCard}>
+              {track.image && (
+                <img src={track.image} style={styles.smallCover} />
+              )}
+
+              <div style={{ flex: 1 }}>
+                <b>{track.title}</b>
+                <div style={styles.artist}>{track.artist}</div>
+                <div style={styles.time}>
+                  {new Date(track.playedAt).toLocaleTimeString('de-DE', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
               </div>
             </div>
           ))}
@@ -389,7 +427,7 @@ const styles = {
   },
 
   queueTitle: {
-    margin: '8px 0 10px'
+    margin: '18px 0 10px'
   },
 
   list: {
@@ -405,6 +443,16 @@ const styles = {
     borderRadius: 18,
     background: 'rgba(0,25,45,.48)',
     border: '1px solid rgba(0,229,255,.30)'
+  },
+
+  historyCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: 10,
+    borderRadius: 18,
+    background: 'rgba(255,255,255,.05)',
+    border: '1px solid rgba(255,255,255,.12)'
   },
 
   number: {
@@ -443,6 +491,12 @@ const styles = {
     color: '#7dffad',
     fontWeight: 900,
     fontSize: 13
+  },
+
+  time: {
+    marginTop: 4,
+    opacity: 0.65,
+    fontSize: 12
   },
 
   actions: {
