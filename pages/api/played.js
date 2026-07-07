@@ -20,7 +20,11 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          tracks: [{ uri: `spotify:track:${id}` }]
+          tracks: [
+            {
+              uri: `spotify:track:${id}`
+            }
+          ]
         })
       }
     );
@@ -33,8 +37,7 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).json({ ok: true });
-
+    return res.status(200).json({ ok: true, result: data });
   } catch (err) {
     return res.status(500).json({
       error: err.message || 'Fehler bei gespielt.'
