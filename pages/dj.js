@@ -8,7 +8,11 @@ export default function DJ() {
   const [likes, setLikes] = useState({});
   const [history, setHistory] = useState([]);
   const [popup, setPopup] = useState(null);
-  const lastFirstId = useRef(null);
+  const [nowPlaying, setNowPlaying] = useState(null);
+  const [clock, setClock] = useState(new Date());
+  const [startedAt] = useState(Date.now());
+  const [newIds, setNewIds] = useState({});
+  const lastIds = useRef([]);
 
   async function load() {
     try {
@@ -17,13 +21,20 @@ export default function DJ() {
       const historyData = await fetch('/api/history').then(r => r.json()).catch(() => ({ history: [] }));
 
       const newTracks = listData.tracks || [];
+      const oldIds = lastIds.current;
+      const freshIds = {};
 
-      if (lastFirstId.current && newTracks[0]?.id && newTracks[0].id !== lastFirstId.current) {
-        setPopup(newTracks[0]);
+      newTracks.forEach(t => {
+        if (!oldIds.includes(t.id)) freshIds[t.id] = Date.now() + 60000;
+      });
+
+      if (Object.keys(freshIds).length > 0 && oldIds.length > 0) {
+        setPopup(newTracks.find(t => freshIds[t.id]));
         setTimeout(() => setPopup(null), 6000);
+        setNewIds(prev => ({ ...prev, ...freshIds }));
       }
 
-      if (newTracks[0]?.id) lastFirstId.current = newTracks[0].id;
+      lastIds.current = newTracks.map(t => t.id);
 
       setTracks(newTracks);
       setLikes(likesData.likes || {});
@@ -39,6 +50,8 @@ export default function DJ() {
   }
 
   async function markPlayed(track) {
+    setNowPlaying(track);
+
     await fetch('/api/history', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,6 +62,13 @@ export default function DJ() {
     load();
   }
 
+  function setAsNowPlaying(track) {
+    setNowPlaying({
+      ...track,
+      startedAt: Date.now()
+    });
+  }
+
   function openQR() {
     window.open(
       `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(GUEST_URL)}`,
@@ -56,16 +76,40 @@ export default function DJ() {
     );
   }
 
+  function runtimeText() {
+    const diff = Date.now() - startedAt;
+    const hours = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')} h`;
+  }
+
   useEffect(() => {
     load();
-    const timer = setInterval(load, 3000);
-    return () => clearInterval(timer);
+
+    const loadTimer = setInterval(load, 3000);
+    const clockTimer = setInterval(() => {
+      setClock(new Date());
+      setNewIds(prev => {
+        const now = Date.now();
+        const cleaned = {};
+        Object.entries(prev).forEach(([id, until]) => {
+          if (until > now) cleaned[id] = until;
+        });
+        return cleaned;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(loadTimer);
+      clearInterval(clockTimer);
+    };
   }, []);
 
   const nextSong = tracks[0];
   const queue = tracks.slice(1);
   const totalLikes = Object.values(likes).reduce((a, b) => a + b, 0);
   const topLiked = [...tracks].sort((a, b) => (likes[b.id] || 0) - (likes[a.id] || 0)).slice(0, 5);
+  const newCount = Object.keys(newIds).length;
 
   return (
     <main style={styles.page}>
@@ -82,8 +126,13 @@ export default function DJ() {
       <section style={styles.dashboard}>
         <header style={styles.header}>
           <div>
-            <div style={styles.live}>● LIVE DJ SYSTEM</div>
-            <h1 style={styles.title}>🎧 DJ Dennis Control</h1>
+            <div style={styles.live}>● LIVE AUFTRITTSMODUS</div>
+            <h1 style={styles.title}>🎧 DJ Dennis Arbeitsplatz</h1>
+          </div>
+
+          <div style={styles.timeBox}>
+            <strong>{clock.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</strong>
+            <span>Auftritt: {runtimeText()}</span>
           </div>
 
           <div style={styles.headerButtons}>
@@ -96,29 +145,45 @@ export default function DJ() {
           <Stat label="Wünsche" value={tracks.length} />
           <Stat label="Likes" value={totalLikes} />
           <Stat label="Gespielt" value={history.length} />
+          <Stat label="Neu" value={newCount} />
         </div>
 
-        <section style={styles.nowArea}>
-          <div style={styles.nowBox}>
-            <div style={styles.sectionLabel}>🎵 ALS NÄCHSTES</div>
+        <section style={styles.liveGrid}>
+          <div style={styles.nowPlaying}>
+            <div style={styles.sectionLabel}>🎶 JETZT LÄUFT</div>
+
+            {nowPlaying ? (
+              <div style={styles.nowInner}>
+                {nowPlaying.image && <img src={nowPlaying.image} style={styles.nowImg} />}
+                <h2>{nowPlaying.title}</h2>
+                <p>{nowPlaying.artist}</p>
+              </div>
+            ) : (
+              <Empty text="Noch kein Song als „Jetzt läuft“ gesetzt." />
+            )}
+          </div>
+
+          <div style={styles.nextBox}>
+            <div style={styles.sectionLabel}>⏭ ALS NÄCHSTES</div>
 
             {nextSong ? (
-              <div style={styles.nowContent}>
-                {nextSong.image && <img src={nextSong.image} style={styles.nowCover} />}
+              <div style={styles.nextContent}>
+                {nextSong.image && <img src={nextSong.image} style={styles.nextCover} />}
 
-                <div style={styles.nowInfo}>
+                <div style={styles.nextInfo}>
                   <h2>{nextSong.title}</h2>
                   <p>{nextSong.artist}</p>
                   <strong>❤️ {likes[nextSong.id] || 0} Likes</strong>
                 </div>
 
                 <div style={styles.bigActions}>
+                  <button style={styles.nowBtn} onClick={() => setAsNowPlaying(nextSong)}>▶ Jetzt läuft</button>
                   <button style={styles.played} onClick={() => markPlayed(nextSong)}>✔ Gespielt</button>
                   <button style={styles.delete} onClick={() => removeTrack(nextSong.id)}>🗑 Löschen</button>
                 </div>
               </div>
             ) : (
-              <Empty text="Noch kein Wunsch vorhanden." />
+              <Empty text="Keine weiteren Wünsche vorhanden." />
             )}
           </div>
         </section>
@@ -132,6 +197,8 @@ export default function DJ() {
                 number={index + 2}
                 track={track}
                 likes={likes[track.id] || 0}
+                fresh={!!newIds[track.id]}
+                onNow={() => setAsNowPlaying(track)}
                 onPlayed={() => markPlayed(track)}
                 onDelete={() => removeTrack(track.id)}
               />
@@ -192,16 +259,17 @@ function Empty({ text }) {
   return <div style={styles.empty}>{text}</div>;
 }
 
-function SongRow({ number, track, likes, onPlayed, onDelete }) {
+function SongRow({ number, track, likes, fresh, onNow, onPlayed, onDelete }) {
   return (
-    <div style={styles.row}>
+    <div style={{ ...styles.row, ...(fresh ? styles.fresh : {}) }}>
       <div style={styles.number}>{number}</div>
       {track.image && <img src={track.image} style={styles.cover} />}
       <div style={styles.info}>
         <b>{track.title}</b>
         <span>{track.artist}</span>
-        <small>❤️ {likes}</small>
+        <small>{fresh ? '🔔 Neuer Wunsch · ' : ''}❤️ {likes}</small>
       </div>
+      <button style={styles.smallNow} onClick={onNow}>▶</button>
       <button style={styles.smallPlayed} onClick={onPlayed}>✔</button>
       <button style={styles.smallDelete} onClick={onDelete}>🗑</button>
     </div>
@@ -233,7 +301,7 @@ const styles = {
   dashboard: {
     position: 'relative',
     zIndex: 2,
-    maxWidth: 1320,
+    maxWidth: 1400,
     margin: '0 auto',
     padding: 18,
     borderRadius: 30,
@@ -242,8 +310,8 @@ const styles = {
     boxShadow: '0 0 70px rgba(29,185,84,.22)'
   },
   header: {
-    display: 'flex',
-    justifyContent: 'space-between',
+    display: 'grid',
+    gridTemplateColumns: '1fr 180px auto',
     alignItems: 'center',
     gap: 14,
     marginBottom: 14
@@ -256,6 +324,15 @@ const styles = {
   title: {
     margin: '4px 0 0',
     fontSize: 38
+  },
+  timeBox: {
+    padding: 12,
+    borderRadius: 18,
+    background: 'rgba(0,0,0,.38)',
+    border: '1px solid rgba(255,255,255,.14)',
+    display: 'grid',
+    gap: 4,
+    textAlign: 'center'
   },
   headerButtons: {
     display: 'flex',
@@ -280,7 +357,7 @@ const styles = {
   },
   stats: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3,1fr)',
+    gridTemplateColumns: 'repeat(4,1fr)',
     gap: 12,
     marginBottom: 14
   },
@@ -293,10 +370,30 @@ const styles = {
     display: 'grid',
     gap: 4
   },
-  nowArea: {
+  liveGrid: {
+    display: 'grid',
+    gridTemplateColumns: '360px 1fr',
+    gap: 14,
     marginBottom: 14
   },
-  nowBox: {
+  nowPlaying: {
+    padding: 18,
+    borderRadius: 26,
+    background: 'linear-gradient(135deg,rgba(0,229,255,.22),rgba(124,58,237,.24))',
+    border: '1px solid rgba(0,229,255,.45)',
+    minHeight: 230
+  },
+  nowInner: {
+    textAlign: 'center'
+  },
+  nowImg: {
+    width: 130,
+    height: 130,
+    borderRadius: 24,
+    objectFit: 'cover',
+    boxShadow: '0 0 35px rgba(0,229,255,.35)'
+  },
+  nextBox: {
     padding: 18,
     borderRadius: 26,
     background: 'linear-gradient(135deg,rgba(29,185,84,.26),rgba(124,58,237,.22))',
@@ -308,44 +405,54 @@ const styles = {
     fontWeight: 900,
     marginBottom: 12
   },
-  nowContent: {
+  nextContent: {
     display: 'grid',
     gridTemplateColumns: '150px 1fr 190px',
     gap: 18,
     alignItems: 'center'
   },
-  nowCover: {
+  nextCover: {
     width: 150,
     height: 150,
     borderRadius: 24,
     objectFit: 'cover'
   },
-  nowInfo: {
+  nextInfo: {
     display: 'grid',
     gap: 6
   },
   bigActions: {
     display: 'grid',
-    gap: 12
+    gap: 10
+  },
+  nowBtn: {
+    padding: 15,
+    borderRadius: 18,
+    border: 0,
+    background: '#00e5ff',
+    color: '#001018',
+    fontWeight: 900,
+    fontSize: 16,
+    cursor: 'pointer'
   },
   played: {
-    padding: 18,
+    padding: 15,
     borderRadius: 18,
     border: 0,
     background: '#1db954',
     color: '#001b09',
     fontWeight: 900,
-    fontSize: 18,
+    fontSize: 16,
     cursor: 'pointer'
   },
   delete: {
-    padding: 18,
+    padding: 15,
     borderRadius: 18,
     border: 0,
     background: '#ff4444',
     color: 'white',
     fontWeight: 900,
-    fontSize: 18,
+    fontSize: 16,
     cursor: 'pointer'
   },
   columns: {
@@ -368,6 +475,10 @@ const styles = {
     marginTop: 8,
     borderRadius: 18,
     background: 'rgba(255,255,255,.06)'
+  },
+  fresh: {
+    border: '1px solid #35ff75',
+    boxShadow: '0 0 30px rgba(53,255,117,.35)'
   },
   number: {
     width: 30,
@@ -395,6 +506,15 @@ const styles = {
   },
   like: {
     color: '#7dffad'
+  },
+  smallNow: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    border: 0,
+    background: '#00e5ff',
+    cursor: 'pointer',
+    fontWeight: 900
   },
   smallPlayed: {
     width: 42,
