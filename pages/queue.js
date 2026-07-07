@@ -5,6 +5,7 @@ export default function Queue() {
   const [tracks, setTracks] = useState([]);
   const [likes, setLikes] = useState({});
   const [liked, setLiked] = useState({});
+  const [lastTrack, setLastTrack] = useState(null);
 
   async function loadQueue() {
     try {
@@ -24,6 +25,7 @@ export default function Queue() {
   useEffect(() => {
     loadQueue();
     setLiked(JSON.parse(localStorage.getItem('djwunschbox_liked') || '{}'));
+    setLastTrack(localStorage.getItem('djwunschbox_last_track'));
 
     const interval = setInterval(loadQueue, 3000);
     return () => clearInterval(interval);
@@ -66,31 +68,39 @@ export default function Queue() {
         )}
 
         <div style={styles.list}>
-          {tracks.map((track, index) => (
-            <div key={track.id + index} style={styles.card}>
-              <div style={styles.number}>{index + 1}</div>
+          {tracks.map((track, index) => {
+            const isMine = lastTrack === track.id;
 
-              {track.image && (
-                <img src={track.image} style={styles.cover} />
-              )}
+            return (
+              <div key={track.id + index} style={{
+                ...styles.card,
+                ...(isMine ? styles.mine : {})
+              }}>
+                <div style={styles.number}>{index + 1}</div>
 
-              <div style={styles.info}>
-                <b>{track.title}</b>
-                <div style={styles.artist}>{track.artist}</div>
+                {track.image && (
+                  <img src={track.image} style={styles.cover} />
+                )}
+
+                <div style={styles.info}>
+                  <b>{track.title}</b>
+                  <div style={styles.artist}>{track.artist}</div>
+                  {isMine && <div style={styles.mineText}>✅ Dein Wunsch</div>}
+                </div>
+
+                <button
+                  style={{
+                    ...styles.like,
+                    ...(liked[track.id] ? styles.liked : {})
+                  }}
+                  onClick={() => likeSong(track.id)}
+                  disabled={liked[track.id]}
+                >
+                  ❤️ {likes[track.id] || 0}
+                </button>
               </div>
-
-              <button
-                style={{
-                  ...styles.like,
-                  ...(liked[track.id] ? styles.liked : {})
-                }}
-                onClick={() => likeSong(track.id)}
-                disabled={liked[track.id]}
-              >
-                ❤️ {likes[track.id] || 0}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </main>
@@ -168,6 +178,10 @@ const styles = {
     border: '1px solid rgba(53,255,117,.45)',
     boxShadow: '0 0 24px rgba(29,185,84,.22)'
   },
+  mine: {
+    border: '1px solid #35ff75',
+    boxShadow: '0 0 35px rgba(53,255,117,.5)'
+  },
   number: {
     width: 26,
     height: 26,
@@ -194,6 +208,12 @@ const styles = {
     opacity: 0.72,
     fontSize: 13,
     marginTop: 3
+  },
+  mineText: {
+    marginTop: 4,
+    color: '#7dffad',
+    fontWeight: 900,
+    fontSize: 12
   },
   like: {
     minWidth: 58,
