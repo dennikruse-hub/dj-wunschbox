@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     const token = await getAccessToken();
 
     const spotifyRes = await fetch(
-      `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+      `https://api.spotify.com/v1/playlists/${playlistId}/items`,
       {
         method: 'DELETE',
         headers: {
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          tracks: [
+          items: [
             {
               uri: `spotify:track:${id}`
             }
@@ -33,11 +33,13 @@ export default async function handler(req, res) {
 
     if (!spotifyRes.ok) {
       return res.status(spotifyRes.status).json({
-        error: data?.error?.message || 'Song konnte nicht entfernt werden.'
+        error: data?.error?.message || 'Song konnte nicht entfernt werden.',
+        details: data
       });
     }
 
     return res.status(200).json({ ok: true, result: data });
+
   } catch (err) {
     return res.status(500).json({
       error: err.message || 'Fehler beim Entfernen.'
