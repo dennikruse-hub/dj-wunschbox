@@ -3,26 +3,38 @@ import PremiumHeader from '../components/PremiumHeader';
 import RequestForm from '../components/RequestForm';
 import BackgroundGlow from '../components/BackgroundGlow';
 import GuestPanel from '../components/GuestPanel';
+import LimitDanceOverlay from '../components/LimitDanceOverlay';
 
 const LIMIT_MAX = 3;
 const LIMIT_TIME = 25 * 60 * 1000;
+const DANCE_TIME = 60 * 1000;
 const LIMIT_KEY = 'djwunschbox_limit';
 
-function getLimitData() {
-  const now = Date.now();
+function formatTime(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const min = String(Math.floor(total / 60)).padStart(2, '0');
+  const sec = String(total % 60).padStart(2, '0');
+  return `${min}:${sec}`;
+}
 
+function freshLimit() {
+  return { count: 0, resetAt: Date.now() + LIMIT_TIME, danceUntil: 0 };
+}
+
+function readLimit() {
   try {
+    const now = Date.now();
     const saved = JSON.parse(localStorage.getItem(LIMIT_KEY) || 'null');
 
     if (!saved || !saved.resetAt || now >= saved.resetAt) {
-      const fresh = { count: 0, resetAt: now + LIMIT_TIME };
+      const fresh = freshLimit();
       localStorage.setItem(LIMIT_KEY, JSON.stringify(fresh));
       return fresh;
     }
 
     return saved;
   } catch {
-    const fresh = { count: 0, resetAt: now + LIMIT_TIME };
+    const fresh = freshLimit();
     localStorage.setItem(LIMIT_KEY, JSON.stringify(fresh));
     return fresh;
   }
@@ -31,14 +43,22 @@ function getLimitData() {
 export default function Home() {
   const [form, setForm] = useState({ artist: '', title: '', guest: '', message: '' });
   const [status, setStatus] = useState(null);
-  const [count, setCount] = useState(0);
+  const [limit, setLimit] = useState({ count: 0, resetAt: 0, danceUntil: 0 });
+  const [now, setNow] = useState(Date.now());
   const [suggestions, setSuggestions] = useState([]);
   const [searching, setSearching] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState(null);
 
   useEffect(() => {
-    const limit = getLimitData();
-    setCount(limit.count);
+    setLimit(readLimit());
+
+    const timer = setInterval(() => {
+      setNow(Date.now());
+      const current = readLimit();
+      setLimit(current);
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -79,14 +99,11 @@ export default function Home() {
   async function submit(e) {
     e.preventDefault();
 
-    const limit = getLimitData();
+    const current = readLimit();
 
-    if (limit.count >= LIMIT_MAX) {
-      setStatus({
-        type: 'error',
-        text: 'Maximal 3 Wünsche erreicht. Nach 25 Minuten sind wieder neue Wünsche möglich.'
-      });
-      setCount(limit.count);
+    if (current.count >= LIMIT_MAX) {
+      setStatus({ type: 'error', text: '⏳ Neue Wünsche in ' + formatTime(current.resetAt - Date.now()) });
+      setLimit(current);
       return;
     }
 
@@ -102,17 +119,21 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Fehler beim Senden.');
 
+      const nextCount = current.count + 1;
       const nextLimit = {
-        count: limit.count + 1,
-        resetAt: limit.resetAt
+        count: nextCount,
+        resetAt: current.resetAt,
+        danceUntil: nextCount >= LIMIT_MAX ? Date.now() + DANCE_TIME : current.danceUntil || 0
       };
 
       localStorage.setItem(LIMIT_KEY, JSON.stringify(nextLimit));
-      setCount(nextLimit.count);
+      setLimit(nextLimit);
 
       setStatus({
         type: 'success',
-        text: '🎉 Wunsch erfolgreich gesendet!',
+        text: nextCount >= LIMIT_MAX
+          ? '🎉 Wunsch gesendet! Jetzt ist Tanzzeit 🕺🔥'
+          : '🎉 Wunsch erfolgreich gesendet!',
         track: data.track
       });
 
@@ -124,9 +145,18 @@ export default function Home() {
     }
   }
 
+  const limitReached = limit.count >= LIMIT_MAX;
+  const resetText = formatTime(limit.resetAt - now);
+  const danceActive = limitReached && limit.danceUntil > now;
+  const danceText = formatTime(limit.danceUntil - now);
+
   return (
     <main style={styles.page}>
       <BackgroundGlow />
+
+      {danceActive && (
+        <LimitDanceOverlay resetText={resetText} animationText={danceText} />
+      )}
 
       <section style={styles.app}>
         <PremiumHeader />
@@ -140,15 +170,20 @@ export default function Home() {
           suggestions={suggestions}
           chooseTrack={chooseTrack}
           selectedTrack={selectedTrack}
+          limitReached={limitReached}
         />
 
         <div style={styles.counterBox}>
-          <div>Gesendete Wünsche in diesem Zeitfenster</div>
-          <strong>{count} / 3</strong>
+          <div>{limitReached ? '⏳ Neue Wünsche in' : 'Gesendete Wünsche in diesem Zeitfenster'}</div>
+          <strong>{limitReached ? resetText : `${limit.count} / 3`}</strong>
           <div style={styles.progress}>
-            <div style={{ ...styles.progressFill, width: `${Math.min(count / 3, 1) * 100}%` }}></div>
+            <div style={{ ...styles.progressFill, width: `${Math.min(limit.count / 3, 1) * 100}%` }}></div>
           </div>
-          <small>Nach 25 Minuten sind wieder 3 neue Wünsche möglich.</small>
+          <small>
+            {limitReached
+              ? 'Bis dahin gilt: Nicht warten – tanzen! 🕺🔥'
+              : 'Nach 25 Minuten sind wieder 3 neue Wünsche möglich.'}
+          </small>
         </div>
 
         {status && (
@@ -222,11 +257,6 @@ const styles = {
     background: 'rgba(0,0,0,.42)',
     border: '1px solid rgba(255,255,255,.14)'
   },
-  success: {
-    border: '1px solid #22c55e'
-  },
-  error: {
-    border: '1px solid #ff4444',
-    color: '#ffaaaa'
-  }
+  success: { border: '1px solid #22c55e' },
+  error: { border: '1px solid #ff4444', color: '#ffaaaa' }
 };
