@@ -27,7 +27,7 @@ export default function Queue() {
     setLiked(JSON.parse(localStorage.getItem('djwunschbox_liked') || '{}'));
     setLastTrack(localStorage.getItem('djwunschbox_last_track'));
 
-    const interval = setInterval(loadQueue, 3000);
+    const interval = setInterval(loadQueue, 15000);
     return () => clearInterval(interval);
   }, []);
 
