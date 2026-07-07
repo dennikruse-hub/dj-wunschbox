@@ -21,12 +21,13 @@ const styles = {
   panel: {
     marginTop: 12,
     display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
     gap: 10
   },
   queueButton: {
     display: 'block',
-    padding: 14,
-    borderRadius: 16,
+    padding: 13,
+    borderRadius: 17,
     background: 'linear-gradient(135deg,#0ea5e9,#7c3aed)',
     color: '#fff',
     textAlign: 'center',
@@ -37,9 +38,9 @@ const styles = {
   paypalButton: {
     display: 'block',
     padding: 13,
-    borderRadius: 16,
+    borderRadius: 17,
     background: 'linear-gradient(135deg,#1db954,#22c55e)',
-    color: '#000',
+    color: '#001b09',
     textAlign: 'center',
     textDecoration: 'none',
     fontWeight: 900,
