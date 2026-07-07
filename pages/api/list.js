@@ -1,25 +1,33 @@
-import { getPlaylistTracks, publicTrack } from '../../lib/spotify';
+import { supabase } from '../../lib/supabase';
 
 export default async function handler(req, res) {
   try {
-    const tracks = await getPlaylistTracks();
+    const { data, error } = await supabase
+      .from('song_requests')
+      .select('*')
+      .eq('status', 'open')
+      .order('created_at', { ascending: true });
 
-    return res.status(200).json({
-      tracks: tracks.map(publicTrack)
-    });
+    if (error) throw error;
+
+    const tracks = (data || []).map(row => ({
+      id: row.track_id,
+      uri: row.uri,
+      title: row.title,
+      artist: row.artist || '',
+      image: row.image || null,
+      guest: row.guest_name || '',
+      message: row.message || '',
+      likes: row.likes || 0,
+      requestId: row.id
+    }));
+
+    return res.status(200).json({ tracks });
+
   } catch (err) {
-    const msg = String(err.message || '');
-
-    if (msg.includes('429') || msg.includes('Too many requests')) {
-      return res.status(429).json({
-        error: 'Spotify ist gerade kurz ausgelastet. Bitte versuche es gleich erneut.',
-        tracks: []
-      });
-    }
-
     return res.status(500).json({
       error: 'Warteliste konnte gerade nicht geladen werden.',
-      details: msg,
+      details: err.message,
       tracks: []
     });
   }
