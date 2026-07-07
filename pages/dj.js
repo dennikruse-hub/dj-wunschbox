@@ -145,7 +145,7 @@ export default function DJ() {
   useEffect(() => {
     load();
 
-    const loadTimer = setInterval(load, 3000);
+    const loadTimer = setInterval(load, 15000);
 
     const clockTimer = setInterval(() => {
       setClock(new Date());
