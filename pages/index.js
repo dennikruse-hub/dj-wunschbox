@@ -4,6 +4,7 @@ import RequestForm from '../components/RequestForm';
 import BackgroundGlow from '../components/BackgroundGlow';
 import GuestPanel from '../components/GuestPanel';
 import LimitDanceOverlay from '../components/LimitDanceOverlay';
+import SuccessOverlay from '../components/SuccessOverlay';
 
 const LIMIT_MAX = 3;
 const LIMIT_TIME = 25 * 60 * 1000;
@@ -54,8 +55,7 @@ export default function Home() {
 
     const timer = setInterval(() => {
       setNow(Date.now());
-      const current = readLimit();
-      setLimit(current);
+      setLimit(readLimit());
     }, 1000);
 
     return () => clearInterval(timer);
@@ -119,6 +119,10 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Fehler beim Senden.');
 
+      if (data.track?.id) {
+        localStorage.setItem('djwunschbox_last_track', data.track.id);
+      }
+
       const nextCount = current.count + 1;
       const nextLimit = {
         count: nextCount,
@@ -140,6 +144,10 @@ export default function Home() {
       setForm({ artist: '', title: '', guest: '', message: '' });
       setSuggestions([]);
       setSelectedTrack(null);
+
+      setTimeout(() => {
+        setStatus(null);
+      }, 5000);
     } catch (err) {
       setStatus({ type: 'error', text: err.message });
     }
@@ -157,6 +165,8 @@ export default function Home() {
       {danceActive && (
         <LimitDanceOverlay resetText={resetText} animationText={danceText} />
       )}
+
+      <SuccessOverlay status={status} onClose={() => setStatus(null)} />
 
       <section style={styles.app}>
         <PremiumHeader />
@@ -186,10 +196,9 @@ export default function Home() {
           </small>
         </div>
 
-        {status && (
+        {status && status.type !== 'success' && (
           <div style={{
             ...styles.status,
-            ...(status.type === 'success' ? styles.success : {}),
             ...(status.type === 'error' ? styles.error : {})
           }}>
             <b>{status.text}</b>
@@ -257,6 +266,8 @@ const styles = {
     background: 'rgba(0,0,0,.42)',
     border: '1px solid rgba(255,255,255,.14)'
   },
-  success: { border: '1px solid #22c55e' },
-  error: { border: '1px solid #ff4444', color: '#ffaaaa' }
+  error: {
+    border: '1px solid #ff4444',
+    color: '#ffaaaa'
+  }
 };
