@@ -1,13 +1,18 @@
 import { getAccessToken } from '../../lib/spotify';
+import { supabase } from '../../lib/supabase';
 
 export default async function handler(req, res) {
   try {
     const id = String(req.query.id || '');
     const playlistId = process.env.SPOTIFY_PLAYLIST_ID;
 
-    if (!id) {
-      return res.status(400).json({ error: 'Song-ID fehlt.' });
-    }
+    if (!id) return res.status(400).json({ error: 'Song-ID fehlt.' });
+
+    await supabase
+      .from('song_requests')
+      .update({ status: 'deleted' })
+      .eq('track_id', id)
+      .eq('status', 'open');
 
     const token = await getAccessToken();
 
@@ -20,25 +25,12 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          items: [
-            {
-              uri: `spotify:track:${id}`
-            }
-          ]
+          items: [{ uri: `spotify:track:${id}` }]
         })
       }
     );
 
-    const data = await spotifyRes.json();
-
-    if (!spotifyRes.ok) {
-      return res.status(spotifyRes.status).json({
-        error: data?.error?.message || 'Song konnte nicht entfernt werden.',
-        details: data
-      });
-    }
-
-    return res.status(200).json({ ok: true, result: data });
+    return res.status(200).json({ ok: true, spotifyStatus: spotifyRes.status });
 
   } catch (err) {
     return res.status(500).json({
