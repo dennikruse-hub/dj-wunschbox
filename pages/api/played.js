@@ -1,20 +1,43 @@
+import { getAccessToken } from '../../lib/spotify';
+
 export default async function handler(req, res) {
   try {
-    const id = req.query.id;
+    const id = String(req.query.id || '');
+    const playlistId = process.env.SPOTIFY_PLAYLIST_ID;
 
     if (!id) {
-      return res.status(400).json({ error: 'Missing track id' });
+      return res.status(400).json({ error: 'Song-ID fehlt.' });
     }
 
-    // aktuell nur LOGIC PLACEHOLDER
-    // (Spotify hat kein "played flag", daher simulieren wir es sauber)
+    const token = await getAccessToken();
 
-    return res.status(200).json({
-      ok: true,
-      played: id
-    });
+    const spotifyRes = await fetch(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tracks: [{ uri: `spotify:track:${id}` }]
+        })
+      }
+    );
+
+    const data = await spotifyRes.json();
+
+    if (!spotifyRes.ok) {
+      return res.status(spotifyRes.status).json({
+        error: data?.error?.message || 'Song konnte nicht als gespielt markiert werden.'
+      });
+    }
+
+    return res.status(200).json({ ok: true });
 
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: err.message || 'Fehler bei gespielt.'
+    });
   }
 }
