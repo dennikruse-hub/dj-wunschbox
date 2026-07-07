@@ -3,31 +3,47 @@ import BackgroundGlow from '../components/BackgroundGlow';
 
 export default function Queue() {
   const [tracks, setTracks] = useState([]);
+  const [likes, setLikes] = useState({});
   const [liked, setLiked] = useState({});
 
   async function loadQueue() {
     try {
-      const res = await fetch('/api/list');
-      const data = await res.json();
-      setTracks(data.tracks || []);
+      const listRes = await fetch('/api/list');
+      const listData = await listRes.json();
+
+      const likesRes = await fetch('/api/likes');
+      const likesData = await likesRes.json();
+
+      setTracks(listData.tracks || []);
+      setLikes(likesData.likes || {});
     } catch (err) {
       console.log(err);
-      setTracks([]);
     }
   }
 
   useEffect(() => {
     loadQueue();
-    setLiked(JSON.parse(localStorage.getItem('djwunschbox_likes') || '{}'));
+    setLiked(JSON.parse(localStorage.getItem('djwunschbox_liked') || '{}'));
 
     const interval = setInterval(loadQueue, 3000);
     return () => clearInterval(interval);
   }, []);
 
-  function likeSong(id) {
-    const next = { ...liked, [id]: true };
-    setLiked(next);
-    localStorage.setItem('djwunschbox_likes', JSON.stringify(next));
+  async function likeSong(trackId) {
+    if (liked[trackId]) return;
+
+    const nextLiked = { ...liked, [trackId]: true };
+    setLiked(nextLiked);
+    localStorage.setItem('djwunschbox_liked', JSON.stringify(nextLiked));
+
+    const res = await fetch('/api/likes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: trackId })
+    });
+
+    const data = await res.json();
+    setLikes(data.likes || {});
   }
 
   return (
@@ -40,7 +56,7 @@ export default function Queue() {
         <div style={styles.header}>
           <div style={styles.badge}>● LIVE</div>
           <h1 style={styles.title}>Warteliste</h1>
-          <p style={styles.subtitle}>Diese Songs wurden bereits gewünscht.</p>
+          <p style={styles.subtitle}>Like deine Lieblingssongs mit ❤️</p>
         </div>
 
         {tracks.length === 0 && (
@@ -71,7 +87,7 @@ export default function Queue() {
                 onClick={() => likeSong(track.id)}
                 disabled={liked[track.id]}
               >
-                ❤️
+                ❤️ {likes[track.id] || 0}
               </button>
             </div>
           ))}
@@ -180,14 +196,15 @@ const styles = {
     marginTop: 3
   },
   like: {
-    width: 42,
+    minWidth: 58,
     height: 42,
-    borderRadius: '50%',
+    borderRadius: 999,
     border: '1px solid rgba(255,255,255,.25)',
     background: 'rgba(0,0,0,.35)',
     color: 'white',
-    fontSize: 18,
-    cursor: 'pointer'
+    fontSize: 16,
+    cursor: 'pointer',
+    fontWeight: 900
   },
   liked: {
     background: '#1db954',
