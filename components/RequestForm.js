@@ -6,7 +6,8 @@ export default function RequestForm({
   searching,
   suggestions,
   chooseTrack,
-  selectedTrack
+  selectedTrack,
+  limitReached
 }) {
   const visibleTracks = selectedTrack ? [selectedTrack] : suggestions.slice(0, 1);
 
@@ -40,11 +41,13 @@ export default function RequestForm({
         </button>
       ))}
 
-      <button style={styles.button} disabled={status?.type === 'loading'}>
+      <button style={styles.button} disabled={status?.type === 'loading' || limitReached}>
         <span style={styles.paper}>✈</span>
         <span>
-          {status?.type === 'loading' ? 'BITTE WARTEN...' : 'WUNSCH SENDEN'}
-          <small style={styles.small}>Dein Song geht direkt an DJ Dennis</small>
+          {limitReached ? 'LIMIT ERREICHT' : status?.type === 'loading' ? 'BITTE WARTEN...' : 'WUNSCH SENDEN'}
+          <small style={styles.small}>
+            {limitReached ? 'Nicht warten – tanzen! 🕺🔥' : 'Dein Song geht direkt an DJ Dennis'}
+          </small>
         </span>
       </button>
     </form>
@@ -64,10 +67,7 @@ function Field({ icon, label, children }) {
 }
 
 const styles = {
-  form: {
-    display: 'grid',
-    gap: 8
-  },
+  form: { display: 'grid', gap: 8 },
   field: {
     display: 'flex',
     gap: 9,
@@ -75,8 +75,7 @@ const styles = {
     padding: 8,
     borderRadius: 16,
     background: 'rgba(0,25,45,.48)',
-    border: '1px solid rgba(0,229,255,.32)',
-    boxShadow: 'inset 0 0 22px rgba(0,229,255,.08)'
+    border: '1px solid rgba(0,229,255,.32)'
   },
   icon: {
     width: 43,
@@ -87,17 +86,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 22,
-    boxShadow: '0 0 16px rgba(0,229,255,.45)'
+    fontSize: 22
   },
-  fieldContent: {
-    flex: 1
-  },
-  label: {
-    fontWeight: 900,
-    fontSize: 13,
-    marginBottom: 4
-  },
+  fieldContent: { flex: 1 },
+  label: { fontWeight: 900, fontSize: 13, marginBottom: 4 },
   input: {
     width: '100%',
     height: 32,
@@ -113,16 +105,11 @@ const styles = {
     marginTop: 3,
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
     color: '#35ff75',
     fontWeight: 900,
     fontSize: 12
   },
-  searchText: {
-    color: '#ddd',
-    fontWeight: 500,
-    fontSize: 11
-  },
+  searchText: { color: '#ddd', fontWeight: 500, fontSize: 11 },
   song: {
     display: 'flex',
     alignItems: 'center',
@@ -132,20 +119,10 @@ const styles = {
     background: 'linear-gradient(135deg,rgba(0,255,120,.2),rgba(0,20,50,.68))',
     border: '1px solid #35ff75',
     color: 'white',
-    cursor: 'pointer',
-    boxShadow: '0 0 25px rgba(29,185,84,.35)'
+    cursor: 'pointer'
   },
-  cover: {
-    width: 54,
-    height: 54,
-    borderRadius: 11,
-    objectFit: 'cover'
-  },
-  artist: {
-    opacity: .75,
-    marginTop: 3,
-    fontSize: 13
-  },
+  cover: { width: 54, height: 54, borderRadius: 11, objectFit: 'cover' },
+  artist: { opacity: .75, marginTop: 3, fontSize: 13 },
   play: {
     width: 36,
     height: 36,
@@ -153,15 +130,14 @@ const styles = {
     border: '2px solid rgba(255,255,255,.8)',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 900
+    justifyContent: 'center'
   },
   button: {
     marginTop: 2,
     minHeight: 62,
     border: 0,
     borderRadius: 17,
-    background: 'linear-gradient(135deg,#1db954 0%,#22c55e 42%,#7c3aed 100%)',
+    background: 'linear-gradient(135deg,#1db954,#22c55e,#7c3aed)',
     color: 'white',
     fontWeight: 900,
     fontSize: 19,
@@ -169,17 +145,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 11,
-    boxShadow: '0 0 35px rgba(29,185,84,.45)'
+    gap: 11
   },
-  paper: {
-    fontSize: 27
-  },
-  small: {
-    display: 'block',
-    fontSize: 10,
-    fontWeight: 500,
-    opacity: .85,
-    marginTop: 2
-  }
+  paper: { fontSize: 27 },
+  small: { display: 'block', fontSize: 10, fontWeight: 500, opacity: .85 }
 };
