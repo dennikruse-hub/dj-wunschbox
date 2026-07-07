@@ -3,14 +3,9 @@ import { getAccessToken } from '../../lib/spotify';
 export default async function handler(req, res) {
   try {
     const playlistId = process.env.SPOTIFY_PLAYLIST_ID;
-
-    if (!playlistId) {
-      return res.status(500).json({ error: 'SPOTIFY_PLAYLIST_ID fehlt' });
-    }
-
     const token = await getAccessToken();
 
-    const spotifyRes = await fetch(
+    const response = await fetch(
       `https://api.spotify.com/v1/playlists/${playlistId}`,
       {
         headers: {
@@ -19,20 +14,20 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await spotifyRes.json();
+    const data = await response.json();
 
-    if (!spotifyRes.ok) {
-      return res.status(500).json({
-        error: `${spotifyRes.status} ${JSON.stringify(data)}`
-      });
+    if (!response.ok) {
+      return res.status(response.status).json(data);
     }
 
-    const tracks = (data.tracks?.items || [])
-      .map(item => item.track)
+    // Spotify liefert bei deiner Playlist die Songs unter items.items[].item
+    const rawItems = data.items?.items || [];
+
+    const tracks = rawItems
+      .map(entry => entry.item)
       .filter(Boolean)
       .map(track => ({
         id: track.id,
-        uri: track.uri,
         title: track.name,
         artist: track.artists?.map(a => a.name).join(', ') || '',
         image:
@@ -44,8 +39,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ tracks });
 
   } catch (err) {
+    console.error(err);
     return res.status(500).json({
-      error: err.message || 'Fehler beim Laden der Warteliste'
+      error: err.message
     });
   }
 }
