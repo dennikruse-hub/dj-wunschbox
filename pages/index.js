@@ -4,6 +4,30 @@ import RequestForm from '../components/RequestForm';
 import BackgroundGlow from '../components/BackgroundGlow';
 import GuestPanel from '../components/GuestPanel';
 
+const LIMIT_MAX = 3;
+const LIMIT_TIME = 25 * 60 * 1000;
+const LIMIT_KEY = 'djwunschbox_limit';
+
+function getLimitData() {
+  const now = Date.now();
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(LIMIT_KEY) || 'null');
+
+    if (!saved || !saved.resetAt || now >= saved.resetAt) {
+      const fresh = { count: 0, resetAt: now + LIMIT_TIME };
+      localStorage.setItem(LIMIT_KEY, JSON.stringify(fresh));
+      return fresh;
+    }
+
+    return saved;
+  } catch {
+    const fresh = { count: 0, resetAt: now + LIMIT_TIME };
+    localStorage.setItem(LIMIT_KEY, JSON.stringify(fresh));
+    return fresh;
+  }
+}
+
 export default function Home() {
   const [form, setForm] = useState({ artist: '', title: '', guest: '', message: '' });
   const [status, setStatus] = useState(null);
@@ -13,7 +37,8 @@ export default function Home() {
   const [selectedTrack, setSelectedTrack] = useState(null);
 
   useEffect(() => {
-    setCount(Number(localStorage.getItem('djwunschbox_count') || '0'));
+    const limit = getLimitData();
+    setCount(limit.count);
   }, []);
 
   useEffect(() => {
@@ -54,10 +79,14 @@ export default function Home() {
   async function submit(e) {
     e.preventDefault();
 
-    const currentCount = Number(localStorage.getItem('djwunschbox_count') || '0');
+    const limit = getLimitData();
 
-    if (currentCount >= 3) {
-      setStatus({ type: 'error', text: 'Maximal 3 Wünsche pro Gerät.' });
+    if (limit.count >= LIMIT_MAX) {
+      setStatus({
+        type: 'error',
+        text: 'Maximal 3 Wünsche erreicht. Nach 25 Minuten sind wieder neue Wünsche möglich.'
+      });
+      setCount(limit.count);
       return;
     }
 
@@ -73,8 +102,13 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Fehler beim Senden.');
 
-      localStorage.setItem('djwunschbox_count', String(currentCount + 1));
-      setCount(currentCount + 1);
+      const nextLimit = {
+        count: limit.count + 1,
+        resetAt: limit.resetAt
+      };
+
+      localStorage.setItem(LIMIT_KEY, JSON.stringify(nextLimit));
+      setCount(nextLimit.count);
 
       setStatus({
         type: 'success',
@@ -109,11 +143,12 @@ export default function Home() {
         />
 
         <div style={styles.counterBox}>
-          <div>Gesendete Wünsche auf diesem Gerät</div>
+          <div>Gesendete Wünsche in diesem Zeitfenster</div>
           <strong>{count} / 3</strong>
           <div style={styles.progress}>
             <div style={{ ...styles.progressFill, width: `${Math.min(count / 3, 1) * 100}%` }}></div>
           </div>
+          <small>Nach 25 Minuten sind wieder 3 neue Wünsche möglich.</small>
         </div>
 
         {status && (
