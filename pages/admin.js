@@ -1,43 +1,35 @@
 import { useEffect, useRef, useState } from 'react';
+import BackgroundGlow from '../components/BackgroundGlow';
 
 export default function Admin() {
   const [tracks, setTracks] = useState([]);
+  const [likes, setLikes] = useState({});
   const [popup, setPopup] = useState(null);
-  const lastIdRef = useRef(null);
-  const firstLoadRef = useRef(true);
+  const lastFirstId = useRef(null);
 
   async function load() {
     try {
-      const res = await fetch('/api/list');
-      const data = await res.json();
-      const newTracks = data.tracks || [];
+      const listRes = await fetch('/api/list');
+      const listData = await listRes.json();
 
-      if (newTracks.length > 0) {
-        const newest = newTracks[0];
+      const likesRes = await fetch('/api/likes');
+      const likesData = await likesRes.json();
 
-        if (!firstLoadRef.current && lastIdRef.current && newest.id !== lastIdRef.current) {
-          setPopup(newest);
-          playAlertSound();
-          setTimeout(() => setPopup(null), 5000);
-        }
+      const newTracks = listData.tracks || [];
 
-        lastIdRef.current = newest.id;
+      if (lastFirstId.current && newTracks[0]?.id && newTracks[0].id !== lastFirstId.current) {
+        setPopup(newTracks[0]);
+        setTimeout(() => setPopup(null), 5000);
       }
 
-      firstLoadRef.current = false;
-      setTracks(newTracks);
-    } catch (e) {
-      console.log(e);
-    }
-  }
+      if (newTracks[0]?.id) {
+        lastFirstId.current = newTracks[0].id;
+      }
 
-  function playAlertSound() {
-    try {
-      const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-      audio.volume = 0.6;
-      audio.play().catch(() => {});
-    } catch (e) {
-      console.log(e);
+      setTracks(newTracks);
+      setLikes(likesData.likes || {});
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -53,8 +45,8 @@ export default function Admin() {
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, 2500);
-    return () => clearInterval(interval);
+    const timer = setInterval(load, 3000);
+    return () => clearInterval(timer);
   }, []);
 
   const nowPlaying = tracks[0];
@@ -62,49 +54,79 @@ export default function Admin() {
 
   return (
     <main style={styles.page}>
-      <h1>🎧 DJ CONTROL</h1>
-      <p style={styles.subline}>Live-Wunschliste wird automatisch aktualisiert.</p>
+      <BackgroundGlow />
 
       {popup && (
         <div style={styles.popup}>
-          <div style={styles.popupTitle}>🔔 NEUER WUNSCH!</div>
-          <div style={styles.popupBox}>
-            <b>{popup.title}</b>
-            <div>{popup.artist}</div>
+          🔔 Neuer Wunsch
+          <div style={styles.popupSong}>{popup.title}</div>
+          <div style={styles.popupArtist}>{popup.artist}</div>
+        </div>
+      )}
+
+      <section style={styles.app}>
+        <div style={styles.top}>
+          <a href="/" style={styles.back}>← Wunschbox</a>
+          <div style={styles.live}>● LIVE</div>
+        </div>
+
+        <h1 style={styles.title}>🎧 DJ Panel</h1>
+        <p style={styles.subtitle}>Live-Warteliste für DJ Dennis</p>
+
+        <div style={styles.stats}>
+          <div style={styles.stat}>
+            <b>{tracks.length}</b>
+            <span>Wünsche</span>
+          </div>
+          <div style={styles.stat}>
+            <b>{Object.values(likes).reduce((a, b) => a + b, 0)}</b>
+            <span>Likes</span>
           </div>
         </div>
-      )}
 
-      {nowPlaying && (
-        <div style={styles.now}>
-          <div style={styles.nowLabel}>🎧 JETZT LÄUFT</div>
-          <b>{nowPlaying.title}</b>
-          <div>{nowPlaying.artist}</div>
-        </div>
-      )}
+        {nowPlaying && (
+          <div style={styles.now}>
+            <div style={styles.nowLabel}>🎵 NÄCHSTER / OBEN IN DER LISTE</div>
 
-      <h3>📋 Warteschlange</h3>
+            <div style={styles.nowContent}>
+              {nowPlaying.image && <img src={nowPlaying.image} style={styles.nowCover} />}
 
-      {queue.length === 0 && (
-        <p style={styles.empty}>Keine weiteren Wünsche vorhanden.</p>
-      )}
-
-      {queue.map(t => (
-        <div key={t.id} style={styles.card}>
-          <div style={styles.songInfo}>
-            {t.image && <img src={t.image} style={styles.image} />}
-            <div>
-              <b>{t.title}</b>
-              <div style={styles.artist}>{t.artist}</div>
+              <div style={{ flex: 1 }}>
+                <b>{nowPlaying.title}</b>
+                <div style={styles.artist}>{nowPlaying.artist}</div>
+                <div style={styles.likeText}>❤️ {likes[nowPlaying.id] || 0}</div>
+              </div>
             </div>
           </div>
+        )}
 
-          <div style={styles.actions}>
-            <button style={styles.played} onClick={() => markPlayed(t.id)}>✔</button>
-            <button style={styles.delete} onClick={() => removeTrack(t.id)}>🗑</button>
-          </div>
+        <h2 style={styles.queueTitle}>📋 Warteschlange</h2>
+
+        {tracks.length === 0 && (
+          <div style={styles.empty}>Noch keine Musikwünsche vorhanden.</div>
+        )}
+
+        <div style={styles.list}>
+          {queue.map((track, index) => (
+            <div key={track.id + index} style={styles.card}>
+              <div style={styles.number}>{index + 2}</div>
+
+              {track.image && <img src={track.image} style={styles.cover} />}
+
+              <div style={styles.info}>
+                <b>{track.title}</b>
+                <div style={styles.artist}>{track.artist}</div>
+                <div style={styles.likeText}>❤️ {likes[track.id] || 0}</div>
+              </div>
+
+              <div style={styles.actions}>
+                <button style={styles.played} onClick={() => markPlayed(track.id)}>✔</button>
+                <button style={styles.delete} onClick={() => removeTrack(track.id)}>🗑</button>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
+      </section>
     </main>
   );
 }
@@ -112,91 +134,191 @@ export default function Admin() {
 const styles = {
   page: {
     minHeight: '100vh',
-    background: '#0b0b0b',
-    color: '#fff',
-    padding: 20,
-    fontFamily: 'Arial'
+    background: '#02030a',
+    color: 'white',
+    fontFamily: 'Arial, Helvetica, sans-serif',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    padding: 10,
+    position: 'relative',
+    overflow: 'auto'
   },
-  subline: {
-    opacity: 0.7
+  app: {
+    width: '100%',
+    maxWidth: 760,
+    marginTop: 6,
+    padding: 16,
+    borderRadius: 28,
+    background:
+      'radial-gradient(circle at 20% 15%,rgba(29,185,84,.26),transparent 30%), radial-gradient(circle at 90% 55%,rgba(124,58,237,.30),transparent 40%), rgba(2,6,23,.9)',
+    border: '1px solid rgba(255,255,255,.18)',
+    boxShadow: '0 0 50px rgba(29,185,84,.22), 0 25px 80px rgba(0,0,0,.85)',
+    backdropFilter: 'blur(18px)',
+    position: 'relative',
+    zIndex: 2
+  },
+  top: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: 12
+  },
+  back: {
+    color: '#7dffad',
+    textDecoration: 'none',
+    fontWeight: 900
+  },
+  live: {
+    color: '#7dffad',
+    fontWeight: 900
+  },
+  title: {
+    margin: 0,
+    fontSize: 40,
+    fontWeight: 900
+  },
+  subtitle: {
+    margin: '6px 0 14px',
+    opacity: 0.75
+  },
+  stats: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 10,
+    marginBottom: 14
+  },
+  stat: {
+    padding: 14,
+    borderRadius: 18,
+    background: 'rgba(0,0,0,.35)',
+    border: '1px solid rgba(255,255,255,.16)',
+    display: 'grid',
+    gap: 3,
+    textAlign: 'center'
   },
   now: {
-    padding: 15,
-    border: '1px solid #1db954',
-    borderRadius: 12,
-    marginBottom: 20,
-    background: '#111'
+    padding: 14,
+    borderRadius: 20,
+    background: 'linear-gradient(135deg,rgba(29,185,84,.22),rgba(124,58,237,.18))',
+    border: '1px solid rgba(53,255,117,.55)',
+    boxShadow: '0 0 28px rgba(29,185,84,.25)',
+    marginBottom: 16
   },
   nowLabel: {
-    color: '#1db954',
-    fontWeight: 'bold',
-    marginBottom: 6
+    color: '#7dffad',
+    fontWeight: 900,
+    fontSize: 12,
+    marginBottom: 10
+  },
+  nowContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12
+  },
+  nowCover: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+    objectFit: 'cover'
+  },
+  queueTitle: {
+    margin: '8px 0 10px'
+  },
+  list: {
+    display: 'grid',
+    gap: 10
   },
   card: {
     display: 'flex',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     gap: 10,
     padding: 10,
-    background: '#111',
-    borderRadius: 10,
-    marginTop: 8,
-    border: '1px solid #222'
+    borderRadius: 18,
+    background: 'rgba(0,25,45,.48)',
+    border: '1px solid rgba(0,229,255,.30)'
   },
-  songInfo: {
+  number: {
+    width: 28,
+    height: 28,
+    minWidth: 28,
+    borderRadius: '50%',
+    background: '#1db954',
+    color: '#001b09',
     display: 'flex',
-    gap: 10,
-    alignItems: 'center'
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 900
   },
-  image: {
-    width: 45,
-    height: 45,
-    borderRadius: 8
+  cover: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    objectFit: 'cover'
+  },
+  info: {
+    flex: 1,
+    minWidth: 0
   },
   artist: {
-    opacity: 0.7,
+    opacity: 0.72,
+    fontSize: 13,
+    marginTop: 3
+  },
+  likeText: {
+    marginTop: 4,
+    color: '#7dffad',
+    fontWeight: 900,
     fontSize: 13
   },
   actions: {
     display: 'flex',
-    gap: 8,
-    alignItems: 'center'
+    gap: 6
   },
   played: {
-    background: '#1db954',
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     border: 0,
-    borderRadius: 8,
-    padding: '8px 10px',
+    background: '#1db954',
+    color: '#001b09',
+    fontWeight: 900,
     cursor: 'pointer'
   },
   delete: {
-    background: '#ff4444',
-    color: '#fff',
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     border: 0,
-    borderRadius: 8,
-    padding: '8px 10px',
+    background: '#ff4444',
+    color: 'white',
+    fontWeight: 900,
     cursor: 'pointer'
   },
   empty: {
-    opacity: 0.7
+    padding: 16,
+    borderRadius: 18,
+    background: 'rgba(0,0,0,.35)',
+    border: '1px solid rgba(255,255,255,.16)',
+    textAlign: 'center',
+    opacity: 0.8
   },
   popup: {
     position: 'fixed',
-    top: 20,
-    right: 20,
-    background: '#1db954',
-    color: '#000',
-    padding: 16,
-    borderRadius: 14,
-    fontWeight: 'bold',
-    boxShadow: '0 0 35px rgba(29,185,84,0.7)',
+    top: 18,
+    right: 18,
     zIndex: 9999,
-    maxWidth: 280
+    background: '#1db954',
+    color: '#001b09',
+    padding: 14,
+    borderRadius: 18,
+    fontWeight: 900,
+    boxShadow: '0 0 40px rgba(29,185,84,.75)'
   },
-  popupTitle: {
-    fontSize: 16,
-    marginBottom: 6
+  popupSong: {
+    marginTop: 6
   },
-  popupBox: {
-    fontSize: 14
+  popupArtist: {
+    opacity: 0.8,
+    fontSize: 13
   }
 };
