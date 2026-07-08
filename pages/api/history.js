@@ -1,25 +1,34 @@
-let historyStore = global.djwunschboxHistory || [];
-global.djwunschboxHistory = historyStore;
+import { supabase } from '../../lib/supabase';
 
-export default function handler(req, res) {
-  if (req.method === 'GET') {
-    return res.status(200).json({ history: historyStore });
-  }
+export default async function handler(req, res) {
+  try {
+    const { data, error } = await supabase
+      .from('song_requests')
+      .select('*')
+      .eq('status', 'played')
+      .order('played_at', { ascending: false })
+      .limit(30);
 
-  if (req.method === 'POST') {
-    const track = req.body?.track;
+    if (error) throw error;
 
-    if (!track?.id) {
-      return res.status(400).json({ error: 'Track fehlt.' });
-    }
+    const history = (data || []).map(row => ({
+      id: row.track_id,
+      uri: row.uri,
+      title: row.title,
+      artist: row.artist || '',
+      image: row.image || null,
+      guest: row.guest_name || '',
+      message: row.message || '',
+      likes: row.likes || 0,
+      playedAt: row.played_at
+    }));
 
-    historyStore.unshift({
-      ...track,
-      playedAt: new Date().toISOString()
+    return res.status(200).json({ history });
+  } catch (err) {
+    return res.status(500).json({
+      error: 'Historie konnte nicht geladen werden.',
+      details: err.message,
+      history: []
     });
-
-    return res.status(200).json({ ok: true, history: historyStore });
   }
-
-  return res.status(405).json({ error: 'Methode nicht erlaubt.' });
 }
