@@ -115,6 +115,11 @@ export default function DJ() {
     }
   }
 
+  async function syncSpotify() {
+    await fetch('/api/sync-spotify');
+    load();
+  }
+
   async function removeTrack(id) {
     await fetch('/api/remove?id=' + encodeURIComponent(id));
     load();
@@ -129,10 +134,7 @@ export default function DJ() {
     const requestId = track.requestId;
 
     if (!requestId) {
-      setNowPlaying({
-        ...track,
-        startedAt: Date.now()
-      });
+      setNowPlaying({ ...track, startedAt: Date.now() });
       return;
     }
 
@@ -216,6 +218,7 @@ export default function DJ() {
         setAsNowPlaying={setAsNowPlaying}
         markPlayed={markPlayed}
         removeTrack={removeTrack}
+        syncSpotify={syncSpotify}
       />
     </main>
   );
