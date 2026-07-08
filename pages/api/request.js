@@ -10,48 +10,67 @@ export default async function handler(req, res) {
     const { artist, title, guest, message } = req.body || {};
 
     if (!artist && !title) {
-      return res.status(400).json({ error: 'Bitte Interpret oder Songtitel eingeben.' });
+      return res.status(400).json({
+        error: 'Bitte Interpret oder Songtitel eingeben.'
+      });
     }
 
-    const track = await searchTrack({ artist, title });
+    let cleanTrack = null;
+    let spotifyAdded = false;
+    let spotifyWarning = null;
 
-    if (!track) {
-      return res.status(404).json({ error: 'Song wurde nicht gefunden.' });
+    try {
+      const track = await searchTrack({ artist, title });
+
+      if (track) {
+        cleanTrack = publicTrack(track);
+
+        try {
+          await addTrackToPlaylist(track.uri);
+          spotifyAdded = true;
+        } catch (err) {
+          spotifyWarning = 'Spotify konnte den Song gerade nicht zur Playlist hinzufügen.';
+        }
+      }
+    } catch (err) {
+      spotifyWarning = 'Spotify ist gerade ausgelastet. Der Wunsch wurde trotzdem gespeichert.';
     }
 
-    await addTrackToPlaylist(track.uri);
+    if (!cleanTrack) {
+      cleanTrack = {
+        id: `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        uri: null,
+        title: title || 'Unbekannter Titel',
+        artist: artist || 'Unbekannter Interpret',
+        image: null
+      };
+    }
 
-    const clean = publicTrack(track);
-
-    await supabase.from('song_requests').insert({
-      track_id: clean.id,
-      uri: clean.uri,
-      title: clean.title,
-      artist: clean.artist,
-      image: clean.image,
+    const { error } = await supabase.from('song_requests').insert({
+      track_id: cleanTrack.id,
+      uri: cleanTrack.uri,
+      title: cleanTrack.title,
+      artist: cleanTrack.artist,
+      image: cleanTrack.image,
       guest_name: guest || null,
       message: message || null,
       status: 'open',
       likes: 0
     });
 
+    if (error) throw error;
+
     return res.status(200).json({
       ok: true,
-      track: clean
+      track: cleanTrack,
+      spotifyAdded,
+      warning: spotifyWarning
     });
 
   } catch (err) {
-    const msg = String(err.message || '');
-
-    if (msg.includes('429') || msg.includes('Too many requests')) {
-      return res.status(429).json({
-        error: 'Spotify ist gerade kurz ausgelastet. Bitte versuche es in wenigen Sekunden erneut.'
-      });
-    }
-
     return res.status(500).json({
-      error: 'Wunsch konnte gerade nicht gesendet werden. Bitte kurz erneut versuchen.',
-      details: msg
+      error: 'Wunsch konnte gerade nicht gespeichert werden.',
+      details: err.message
     });
   }
 }
