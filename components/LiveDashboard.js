@@ -15,7 +15,8 @@ export default function LiveDashboard({
   wakeActive,
   setAsNowPlaying,
   markPlayed,
-  removeTrack
+  removeTrack,
+  syncSpotify
 }) {
   const nextSong = tracks[0];
   const queue = tracks.slice(1);
@@ -51,6 +52,12 @@ export default function LiveDashboard({
               🎛 Live-Modus
             </button>
             <button style={styles.qrButton} onClick={onQR}>📱 QR-Code</button>
+        <button
+        style={styles.qrButton}
+        onClick={syncSpotify}
+        >
+         🔄 Spotify Sync
+         </button>
             <a href="/" style={styles.guestButton}>Gäste-App</a>
           </div>
         </header>
