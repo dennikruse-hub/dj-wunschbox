@@ -4,6 +4,23 @@ import LiveDashboard from '../components/LiveDashboard';
 
 const GUEST_URL = 'https://dj-wunschbox.vercel.app';
 
+function mapNowPlaying(row) {
+  if (!row) return null;
+
+  return {
+    id: row.track_id,
+    uri: row.uri,
+    title: row.title,
+    artist: row.artist || '',
+    image: row.image || null,
+    guest: row.guest_name || '',
+    message: row.message || '',
+    likes: row.likes || 0,
+    requestId: row.id,
+    startedAt: Date.now()
+  };
+}
+
 export default function DJ() {
   const [tracks, setTracks] = useState([]);
   const [likes, setLikes] = useState({});
@@ -19,7 +36,6 @@ export default function DJ() {
 
   const lastIds = useRef([]);
   const wakeLockRef = useRef(null);
-  const audioRef = useRef(null);
 
   function beep() {
     try {
@@ -32,14 +48,12 @@ export default function DJ() {
 
       oscillator.type = 'sine';
       oscillator.frequency.value = 880;
-
       gain.gain.setValueAtTime(0.001, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
 
       oscillator.connect(gain);
       gain.connect(ctx.destination);
-
       oscillator.start();
       oscillator.stop(ctx.currentTime + 0.45);
     } catch (err) {
@@ -50,7 +64,6 @@ export default function DJ() {
   async function activateLiveMode() {
     try {
       setSoundActive(true);
-      audioRef.current = true;
 
       if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
         await document.documentElement.requestFullscreen();
@@ -73,6 +86,7 @@ export default function DJ() {
       const listData = await fetch('/api/list').then(r => r.json());
       const likesData = await fetch('/api/likes').then(r => r.json());
       const historyData = await fetch('/api/history').then(r => r.json()).catch(() => ({ history: [] }));
+      const nowData = await fetch('/api/now-playing').then(r => r.json()).catch(() => ({ nowPlaying: null }));
 
       const newTracks = listData.tracks || [];
       const oldIds = lastIds.current;
@@ -95,6 +109,7 @@ export default function DJ() {
       setTracks(newTracks);
       setLikes(likesData.likes || {});
       setHistory(historyData.history || []);
+      setNowPlaying(mapNowPlaying(nowData.nowPlaying));
     } catch (err) {
       console.log(err);
     }
@@ -106,26 +121,34 @@ export default function DJ() {
   }
 
   async function markPlayed(track) {
-    setNowPlaying({
-      ...track,
-      startedAt: Date.now()
-    });
-
-    await fetch('/api/history', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ track })
-    });
-
     await fetch('/api/played?id=' + encodeURIComponent(track.id));
     load();
   }
 
-  function setAsNowPlaying(track) {
-    setNowPlaying({
-      ...track,
-      startedAt: Date.now()
+  async function setAsNowPlaying(track) {
+    const requestId = track.requestId;
+
+    if (!requestId) {
+      setNowPlaying({
+        ...track,
+        startedAt: Date.now()
+      });
+      return;
+    }
+
+    const res = await fetch('/api/now-playing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId })
     });
+
+    const data = await res.json();
+
+    if (data.ok) {
+      setNowPlaying(mapNowPlaying(data.nowPlaying));
+    }
+
+    load();
   }
 
   function openQR() {
@@ -149,7 +172,6 @@ export default function DJ() {
 
     const clockTimer = setInterval(() => {
       setClock(new Date());
-
       setLiveModeActive(!!document.fullscreenElement);
 
       setNewIds(prev => {
