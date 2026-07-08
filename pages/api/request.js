@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     let cleanTrack = null;
     let spotifyAdded = false;
-    let spotifyWarning = null;
+    let spotifyError = null;
 
     try {
       const track = await searchTrack({ artist, title });
@@ -29,11 +29,11 @@ export default async function handler(req, res) {
           await addTrackToPlaylist(track.uri);
           spotifyAdded = true;
         } catch (err) {
-          spotifyWarning = 'Spotify konnte den Song gerade nicht zur Playlist hinzufügen.';
+          spotifyError = err.message || 'Spotify konnte den Song nicht hinzufügen.';
         }
       }
     } catch (err) {
-      spotifyWarning = 'Spotify ist gerade ausgelastet. Der Wunsch wurde trotzdem gespeichert.';
+      spotifyError = err.message || 'Spotify Suche nicht möglich.';
     }
 
     if (!cleanTrack) {
@@ -55,7 +55,10 @@ export default async function handler(req, res) {
       guest_name: guest || null,
       message: message || null,
       status: 'open',
-      likes: 0
+      likes: 0,
+      spotify_added: spotifyAdded,
+      spotify_last_error: spotifyError,
+      spotify_synced_at: spotifyAdded ? new Date().toISOString() : null
     });
 
     if (error) throw error;
@@ -64,7 +67,7 @@ export default async function handler(req, res) {
       ok: true,
       track: cleanTrack,
       spotifyAdded,
-      warning: spotifyWarning
+      spotifyError
     });
 
   } catch (err) {
